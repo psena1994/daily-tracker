@@ -3,7 +3,7 @@ import {
   AppBar, Toolbar, Typography, Tabs, Tab, Box, Card, CardContent, Checkbox,
   FormControlLabel, Grid, Container, CssBaseline, createTheme, ThemeProvider,
   Divider, LinearProgress, Switch, Grow, Button, TextField, Stack, Paper,
-  IconButton // Added IconButton for Nav Buttons
+  IconButton
 } from "@mui/material";
 // Import arrow icons
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
@@ -17,18 +17,28 @@ import Confetti from "react-confetti";
 import { useWindowSize } from "@react-hook/window-size";
 import { motion, AnimatePresence } from "framer-motion";
 
-// Simplified Animation Variants (Fade Only)
+// --- Expanded Animation Variants (Fade Only) ---
 const variants = {
-  enter: { opacity: 0 },
-  center: { opacity: 1 },
-  exit: { opacity: 0 }
+  enter: {
+    opacity: 0, // Start transparent
+  },
+  center: {
+    opacity: 1, // Fade in to fully visible
+    // No position: 'absolute', no x transform
+  },
+  exit: {
+    opacity: 0, // Fade out
+    // No position: 'absolute', no x transform
+  }
 };
+// Expanded transition for the fade effect
 const transition = { duration: 0.3, ease: "easeInOut" };
 
 
+// Expanded days array
 const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-// --- FULL Default plan restored ---
+// --- Expanded Default plan ---
 const defaultPlan = {
   Monday: {
     fitness: "🚴‍♂️ Bike commute to work",
@@ -102,7 +112,7 @@ const defaultPlan = {
   }
 };
 
-// --- FULL Default groceries restored ---
+// --- Expanded Default groceries ---
 const defaultGroceries = {
   "🍗 Protein": ["12 Eggs", "1.4 kg Chicken breast", "700 g Lean beef", "1.2 kg Greek yogurt", "500 g Protein powder"],
   "🍞 Carbs": ["14 Bananas", "4 Sweet potatoes", "2 kg Potatoes", "300 g Quinoa", "20 Dates"],
@@ -114,35 +124,69 @@ const defaultGroceries = {
 
 // Main App Component
 function App() {
-  // --- State & Refs (no changes) ---
+  // --- State & Refs ---
   const [userPrefs, setUserPrefs] = useState("high protein, gluten-free");
-  const [selectedDay, setSelectedDay] = useState(() => localStorage.getItem("selectedDay") || days[new Date().getDay()]);
+  const [selectedDay, setSelectedDay] = useState(() => {
+      // Expanded localStorage logic for selectedDay
+      const storedDay = localStorage.getItem("selectedDay");
+      // Validate if the stored day is one of the valid days
+      return storedDay && days.includes(storedDay) ? storedDay : days[new Date().getDay()];
+  });
   const [checkedItemsByDay, setCheckedItemsByDay] = useState(() => {
-     try { const stored = localStorage.getItem("checkedItemsByDay"); return stored ? JSON.parse(stored) : {}; } catch { return {}; }
+     // Expanded localStorage logic for checkedItemsByDay
+     try {
+       const stored = localStorage.getItem("checkedItemsByDay");
+       return stored ? JSON.parse(stored) : {}; // Default to empty object
+     } catch (e) {
+       console.error("Failed to parse checkedItemsByDay from localStorage", e);
+       return {}; // Return default on error
+     }
   });
   const [groceryChecked, setGroceryChecked] = useState(() => {
-     try { const stored = localStorage.getItem("groceryChecked"); return stored ? JSON.parse(stored) : {}; } catch { return {}; }
+     // Expanded localStorage logic for groceryChecked
+     try {
+       const stored = localStorage.getItem("groceryChecked");
+       return stored ? JSON.parse(stored) : {}; // Default to empty object
+     } catch (e) {
+       console.error("Failed to parse groceryChecked from localStorage", e);
+       return {}; // Return default on error
+     }
   });
   const [dynamicPlan, setDynamicPlan] = useState(() => {
-     try { const stored = localStorage.getItem("dynamicPlan"); return stored ? JSON.parse(stored) : null; } catch { return null; }
+     // Expanded localStorage logic for dynamicPlan
+     try {
+       const stored = localStorage.getItem("dynamicPlan");
+       return stored ? JSON.parse(stored) : null; // Default to null
+     } catch (e) {
+       console.error("Failed to parse dynamicPlan from localStorage", e);
+       return null; // Return default on error
+     }
   });
   const [dynamicGroceries, setDynamicGroceries] = useState(() => {
-     try { const stored = localStorage.getItem("dynamicGroceries"); return stored ? JSON.parse(stored) : null; } catch { return null; }
+     // Expanded localStorage logic for dynamicGroceries
+     try {
+       const stored = localStorage.getItem("dynamicGroceries");
+       return stored ? JSON.parse(stored) : null; // Default to null
+     } catch (e) {
+       console.error("Failed to parse dynamicGroceries from localStorage", e);
+       return null; // Return default on error
+     }
   });
   const [loadingPlan, setLoadingPlan] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [width, height] = useWindowSize();
 
   // --- Derived State & Memos ---
-  const activePlan = dynamicPlan ?? defaultPlan ?? {}; // Fallback added just in case
-  const activeGroceries = dynamicGroceries ?? defaultGroceries ?? {}; // Fallback added just in case
+  const activePlan = dynamicPlan ?? defaultPlan ?? {};
+  const activeGroceries = dynamicGroceries ?? defaultGroceries ?? {};
 
-  const currentDayPlan = activePlan[selectedDay] || {}; // Default to empty object if day somehow not found
+  const currentDayPlan = activePlan[selectedDay] || {}; // Default to empty object if day not found
   const meals = currentDayPlan.meals || [];
   const fitness = currentDayPlan.fitness || "";
 
   const checkedItems = checkedItemsByDay[selectedDay] || {};
 
+  // Expanded progress calculation
   const progress = useMemo(() => {
     const total = meals.length + 1; // +1 for fitness
     if (total <= 1 && !fitness) return 0; // Handle case with no meals and no fitness string
@@ -150,39 +194,106 @@ function App() {
     const completedMeals = meals.filter((_, i) => checkedItems[`meal-${i}`]).length;
     const completedFitness = checkedItems["fitness"] ? 1 : 0;
     return Math.round(((completedMeals + completedFitness) / total) * 100);
-  }, [checkedItems, meals, fitness]); // Added fitness dependency
+  }, [checkedItems, meals, fitness]);
 
-  // --- Effects (no changes) ---
-  useEffect(() => { /* ...localStorage sync logic... */ }, [selectedDay, checkedItemsByDay, groceryChecked, dynamicPlan, dynamicGroceries]);
-  useEffect(() => { /* ...confetti logic... */ }, [progress, showConfetti]);
+  // --- Effects ---
+  // Expanded localStorage synchronization effect
+  useEffect(() => {
+    try {
+        localStorage.setItem("selectedDay", selectedDay);
+        localStorage.setItem("checkedItemsByDay", JSON.stringify(checkedItemsByDay));
+        localStorage.setItem("groceryChecked", JSON.stringify(groceryChecked));
+        if (dynamicPlan) {
+            localStorage.setItem("dynamicPlan", JSON.stringify(dynamicPlan));
+        } else {
+            localStorage.removeItem("dynamicPlan");
+        }
+        if (dynamicGroceries) {
+            localStorage.setItem("dynamicGroceries", JSON.stringify(dynamicGroceries));
+        } else {
+            localStorage.removeItem("dynamicGroceries");
+        }
+    } catch (e) {
+        console.error("Failed to update localStorage", e);
+    }
+   }, [selectedDay, checkedItemsByDay, groceryChecked, dynamicPlan, dynamicGroceries]);
 
-  // --- Handlers (no changes) ---
-  const handleChangeDay = (direction) => {
+  // Expanded confetti effect
+  useEffect(() => {
+    if (progress === 100 && !showConfetti) {
+      setShowConfetti(true);
+      const timer = setTimeout(() => setShowConfetti(false), 4000); // Show confetti for 4 seconds
+      return () => clearTimeout(timer); // Cleanup timer on unmount or if progress changes
+    }
+  }, [progress, showConfetti]);
+
+  // --- Handlers ---
+  // Expanded day change handler
+  const handleChangeDay = (direction) => { // direction is -1 for prev, 1 for next
     const currentIndex = days.indexOf(selectedDay);
-    const newIndex = (currentIndex + direction + days.length) % days.length;
+    const newIndex = (currentIndex + direction + days.length) % days.length; // Handles wrap-around
     setSelectedDay(days[newIndex]);
    };
 
+  // Expanded item check handler
   const handleCheck = (key) => {
-     setCheckedItemsByDay(prev => ({
-       ...prev,
-       [selectedDay]: {
-         ...prev[selectedDay],
-         [key]: !prev[selectedDay]?.[key]
-       }
-     }));
+     setCheckedItemsByDay(prev => {
+       const currentDayChecks = prev[selectedDay] || {};
+       const newDayChecks = {
+         ...currentDayChecks,
+         [key]: !currentDayChecks[key] // Toggle the specific key
+       };
+       return {
+         ...prev,
+         [selectedDay]: newDayChecks
+       };
+     });
    };
 
+  // Expanded reset handler
   const resetCustomPlan = () => {
      setDynamicPlan(null);
      setDynamicGroceries(null);
+     // Clear relevant localStorage items explicitly if desired, though useEffect handles it too
+     // localStorage.removeItem("dynamicPlan");
+     // localStorage.removeItem("dynamicGroceries");
   };
 
-  const handleGeneratePlan = async () => { /* ... calls /api/generate-plan ... */ };
+  // Expanded plan generation handler (includes the debug log from earlier)
+  const handleGeneratePlan = async () => {
+    console.log('Generate button clicked, handleGeneratePlan started...'); // Debug log
+    setLoadingPlan(true);
+    try {
+      const response = await fetch('/api/generate-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', },
+        body: JSON.stringify({ userPrefs }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+        throw new Error(`API request failed: ${response.status} ${errorData.error || ''}`);
+      }
+      const { plan: newPlan, grocerySections: newGroceries } = await response.json();
+       if (!newPlan || !newGroceries || typeof newPlan !== 'object' || typeof newGroceries !== 'object') {
+          throw new Error("Received invalid data structure from API.");
+      }
+      setDynamicPlan(newPlan);
+      setDynamicGroceries(newGroceries);
+    } catch (err) {
+      console.error("Failed to fetch plan:", err);
+      // TODO: Replace console.error with a Snackbar or other UI feedback for the user
+    } finally {
+      setLoadingPlan(false);
+    }
+  };
 
-  // --- Theme ---
+  // --- Expanded Theme ---
   const theme = createTheme({
-     palette: { mode: "light", primary: blueGrey, background: { default: "#f4f7f9", paper: "#ffffff" } },
+     palette: {
+       mode: "light",
+       primary: blueGrey,
+       background: { default: "#f4f7f9", paper: "#ffffff" }
+     },
      shape: { borderRadius: 12 }
   });
 
@@ -250,10 +361,10 @@ function App() {
              {Object.keys(activeGroceries).length > 0 ? Object.entries(activeGroceries).map(([category, items]) => (
                  <Grid item xs={12} sm={6} md={4} key={category}>
                      <Card sx={{ height: '100%', boxShadow: 1 }}>
-                         <CardContent sx={{ p: 2.5 }}> {/* Padding adjusted previously */}
+                         <CardContent sx={{ p: 2.5 }}>
                              <Typography variant="subtitle1" fontWeight="bold" gutterBottom>{category}</Typography>
                              {Array.isArray(items) && items.map((item, i) => (
-                               <FormControlLabel key={i} sx={{ display: 'block', mb: 1 }} /* Margin adjusted previously */ control={ <Checkbox size="small" checked={groceryChecked[item] || false} onChange={() => setGroceryChecked(prev => ({ ...prev, [item]: !prev[item] })) } /> } label={<Typography variant="body2">{item}</Typography>} />
+                               <FormControlLabel key={i} sx={{ display: 'block', mb: 1 }} control={ <Checkbox size="small" checked={groceryChecked[item] || false} onChange={() => setGroceryChecked(prev => ({ ...prev, [item]: !prev[item] })) } /> } label={<Typography variant="body2">{item}</Typography>} />
                              ))}
                          </CardContent>
                      </Card>
@@ -265,7 +376,15 @@ function App() {
         </Box>
 
         {/* --- Confetti --- */}
-        {showConfetti && ( <Confetti width={width} height={height} numberOfPieces={300} recycle={false} style={{ position: 'fixed', top: 0, left: 0, zIndex: 9999 }} /> )}
+        {showConfetti && (
+            <Confetti
+                width={width}
+                height={height}
+                numberOfPieces={300}
+                recycle={false}
+                style={{ position: 'fixed', top: 0, left: 0, zIndex: 9999 }}
+            />
+        )}
 
       </Container>
     </ThemeProvider>
@@ -273,4 +392,3 @@ function App() {
 }
 
 export default App;
-
