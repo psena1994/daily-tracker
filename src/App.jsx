@@ -113,7 +113,7 @@ const defaultPlan = {
     ]
   },
   Friday: {
-    fitness: "🧘‍♂️ Stretch + short walk",
+    fitness: "🧘‍♂️ Stretchy + short walky",
     meals: [
       { name: "☕ Morning Fast", recipe: "Black coffee with pink salt and cinnamon." },
       { name: "🍳 2pm Lunch", recipe: "Fried eggs + banana in coconut oil." },
