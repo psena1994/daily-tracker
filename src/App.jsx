@@ -4,46 +4,41 @@ import {
   FormControlLabel, Grid, Container, CssBaseline, createTheme, ThemeProvider,
   Divider, LinearProgress, Switch, Grow, Button, TextField, Stack, Paper,
   IconButton,
-  GlobalStyles // Import GlobalStyles
+  GlobalStyles, // Import GlobalStyles (from user's code)
+  // --- ADDED Accordion Imports ---
+  Accordion, AccordionSummary, AccordionDetails
 } from "@mui/material";
-// Import arrow icons
+// --- Icon Imports ---
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'; // ADDED Icon for Accordion
 // Other imports...
 import ListAltIcon from "@mui/icons-material/ListAlt";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
-// Import icons for header
+// Import icons for header (from user's code)
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu'; // Import food icon
-// Import new colors for the theme
-import { teal, amber } from "@mui/material/colors"; // Changed from blueGrey
+// Import new colors for the theme (from user's code)
+import { teal, amber } from "@mui/material/colors";
 import Confetti from "react-confetti";
 import { useWindowSize } from "@react-hook/window-size";
 import { motion, AnimatePresence } from "framer-motion";
 
-// --- Expanded Animation Variants (Fade Only) ---
+// Animation Variants (from user's code)
 const variants = {
-  enter: {
-    opacity: 0, // Start transparent
-  },
-  center: {
-    opacity: 1, // Fade in to fully visible
-    // No position: 'absolute', no x transform
-  },
-  exit: {
-    opacity: 0, // Fade out
-    // No position: 'absolute', no x transform
-  }
+  enter: { opacity: 0, },
+  center: { opacity: 1, },
+  exit: { opacity: 0, }
 };
-// --- Faster transition for the fade effect ---
-const transition = { duration: 0.2, ease: "easeInOut" }; // Reduced duration from 0.3
+// Transition (from user's code)
+const transition = { duration: 0.2, ease: "easeInOut" };
 
 
-// Expanded days array
+// Days array (from user's code)
 const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-// --- Expanded Default plan ---
+// Default plan (from user's code - full version)
 const defaultPlan = {
   Monday: {
     fitness: "🚴‍♂️ Bike commute to work",
@@ -117,7 +112,7 @@ const defaultPlan = {
   }
 };
 
-// --- Expanded Default groceries ---
+// Default groceries (from user's code)
 const defaultGroceries = {
   "🍗 Protein": ["12 Eggs", "1.4 kg Chicken breast", "700 g Lean beef", "1.2 kg Greek yogurt", "500 g Protein powder"],
   "🍞 Carbs": ["14 Bananas", "4 Sweet potatoes", "2 kg Potatoes", "300 g Quinoa", "20 Dates"],
@@ -129,7 +124,7 @@ const defaultGroceries = {
 
 // Main App Component
 function App() {
-  // --- State & Refs ---
+  // --- State & Refs (using user's robust localStorage logic) ---
   const [userPrefs, setUserPrefs] = useState("high protein, gluten-free");
   const [selectedDay, setSelectedDay] = useState(() => {
       // Expanded localStorage logic for selectedDay
@@ -185,34 +180,26 @@ function App() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [width, height] = useWindowSize();
 
-  // --- Derived State & Memos ---
+  // --- Derived State & Memos (using user's defensive checks) ---
   const activePlan = dynamicPlan ?? defaultPlan ?? {};
   const activeGroceries = dynamicGroceries ?? defaultGroceries ?? {};
-
   const currentDayPlan = activePlan[selectedDay] || {}; // Default to empty object if day not found
   const meals = currentDayPlan.meals || [];
   const fitness = currentDayPlan.fitness || "";
-
   const checkedItems = checkedItemsByDay[selectedDay] || {};
-
-  // Expanded progress calculation
+  // Using user's progress logic
   const progress = useMemo(() => {
-    // Ensure meals is definitely an array and checkedItems is an object
     const currentMeals = Array.isArray(meals) ? meals : [];
     const currentChecks = typeof checkedItems === 'object' && checkedItems !== null ? checkedItems : {};
-
     const total = currentMeals.length + (fitness ? 1 : 0);
     if (total === 0) return 0;
-
     const completedMeals = currentMeals.filter((_, i) => currentChecks[`meal-${i}`]).length;
     const completedFitness = (fitness && currentChecks["fitness"]) ? 1 : 0;
-
     return Math.round(((completedMeals + completedFitness) / total) * 100);
   }, [checkedItems, meals, fitness]);
 
 
-  // --- Effects ---
-  // Expanded localStorage synchronization effect
+  // --- Effects (using user's robust localStorage sync) ---
   useEffect(() => {
     try {
          localStorage.setItem("selectedDay", selectedDay);
@@ -232,74 +219,48 @@ function App() {
          console.error("Failed to update localStorage", e);
     }
    }, [selectedDay, checkedItemsByDay, groceryChecked, dynamicPlan, dynamicGroceries]);
-
-  // Expanded confetti effect
+  // Using user's confetti logic
   useEffect(() => {
     if (progress === 100 && !showConfetti) {
       setShowConfetti(true);
-      const timer = setTimeout(() => setShowConfetti(false), 4000); // Show confetti for 4 seconds
-      return () => clearTimeout(timer); // Cleanup timer on unmount or if progress changes
+      const timer = setTimeout(() => setShowConfetti(false), 4000);
+      return () => clearTimeout(timer);
     }
   }, [progress, showConfetti]);
 
-  // --- Handlers ---
-  // Expanded day change handler
-  const handleChangeDay = (direction) => { // direction is -1 for prev, 1 for next
+  // --- Handlers (using user's expanded versions) ---
+  const handleChangeDay = (direction) => {
     const currentIndex = days.indexOf(selectedDay);
-    const newIndex = (currentIndex + direction + days.length) % days.length; // Handles wrap-around
+    const newIndex = (currentIndex + direction + days.length) % days.length;
     setSelectedDay(days[newIndex]);
    };
-
-  // Expanded item check handler
   const handleCheck = (key) => {
       setCheckedItemsByDay(prev => {
         const currentDayChecks = prev[selectedDay] || {};
-        const newDayChecks = {
-          ...currentDayChecks,
-          [key]: !currentDayChecks[key] // Toggle the specific key
-        };
-        return {
-          ...prev,
-          [selectedDay]: newDayChecks
-        };
+        const newDayChecks = { ...currentDayChecks, [key]: !currentDayChecks[key] };
+        return { ...prev, [selectedDay]: newDayChecks };
       });
      };
-
-  // Expanded reset handler
   const resetCustomPlan = () => {
       setDynamicPlan(null);
       setDynamicGroceries(null);
    };
-
-  // Expanded plan generation handler (includes the debug log from earlier)
+  // Using user's generate plan logic
   const handleGeneratePlan = async () => {
-    console.log('Generate button clicked, handleGeneratePlan started...'); // Debug log
+    console.log('Generate button clicked, handleGeneratePlan started...');
     setLoadingPlan(true);
     try {
-      const response = await fetch('/api/generate-plan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', },
-        body: JSON.stringify({ userPrefs }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
-        throw new Error(`API request failed: ${response.status} ${errorData.error || ''}`);
-      }
+      const response = await fetch('/api/generate-plan', { method: 'POST', headers: { 'Content-Type': 'application/json', }, body: JSON.stringify({ userPrefs }), });
+      if (!response.ok) { const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' })); throw new Error(`API request failed: ${response.status} ${errorData.error || ''}`); }
       const { plan: newPlan, grocerySections: newGroceries } = await response.json();
-       if (!newPlan || !newGroceries || typeof newPlan !== 'object' || typeof newGroceries !== 'object') {
-           throw new Error("Received invalid data structure from API.");
-       }
+       if (!newPlan || !newGroceries || typeof newPlan !== 'object' || typeof newGroceries !== 'object') { throw new Error("Received invalid data structure from API."); }
       setDynamicPlan(newPlan);
       setDynamicGroceries(newGroceries);
-    } catch (err) {
-      console.error("Failed to fetch plan:", err);
-      // TODO: Replace console.error with a Snackbar or other UI feedback for the user
-    } finally {
-      setLoadingPlan(false);
-    }
+    } catch (err) { console.error("Failed to fetch plan:", err); /* TODO: Snackbar feedback */ }
+    finally { setLoadingPlan(false); }
   };
 
-  // --- Updated Theme with Teal and Amber ---
+  // --- Theme (using user's Teal/Amber theme) ---
   const theme = createTheme({
       palette: {
         mode: "light",
@@ -313,7 +274,7 @@ function App() {
   // --- Render ---
   return (
     <ThemeProvider theme={theme}>
-      {/* Header AppBar is position="sticky" */}
+      {/* --- Header (from user's code) --- */}
       <AppBar position="sticky" elevation={1}>
         <Toolbar sx={{ justifyContent: 'center' }}>
           <FitnessCenterIcon sx={{ mr: 1 }} />
@@ -326,7 +287,7 @@ function App() {
       {/* --- End Header --- */}
 
       <CssBaseline />
-      {/* Apply gradient background using GlobalStyles - Restored */}
+      {/* --- Gradient Background (from user's code) --- */}
       <GlobalStyles
         styles={(theme) => ({
           body: {
@@ -338,11 +299,10 @@ function App() {
         })}
       />
 
-      {/* Container Padding Adjusted for Sticky Header */}
-      {/* Using pt: 7 */}
-      <Container sx={{ pt: 7, pb: 10 }}>
+      {/* --- Main Content Container (using user's padding) --- */}
+      <Container sx={{ pt: 7, pb: 10 }}> {/* Adjusted padding */}
 
-        {/* --- Preferences & Actions --- */}
+        {/* --- Preferences & Actions (from user's code) --- */}
         <Paper elevation={1} sx={{ p: 2, mb: 3, borderRadius: '16px' }}>
             <TextField fullWidth label="Your Dietary Preferences & Goals" value={userPrefs} onChange={(e) => setUserPrefs(e.target.value)} sx={{ mb: 2 }} variant="outlined" size="small"/>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} >
@@ -351,47 +311,37 @@ function App() {
             </Stack>
         </Paper>
 
-        {/* --- Day View Container --- */}
-        {/* Reduced bottom margin */}
+        {/* --- Day View Container (from user's code) --- */}
         <Box sx={{ position: "relative", mb: 2 }}>
           {/* Day Title and Navigation Buttons */}
           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
               <IconButton onClick={() => handleChangeDay(-1)} aria-label="Previous Day" size="small" sx={{ color: 'text.primary' }}> <ArrowBackIosNewIcon fontSize="inherit" /> </IconButton>
-              {/* Day Typography is fontWeight="bold" */}
               <Typography variant="h5" textAlign="center" fontWeight="bold" sx={{ color: 'text.primary' }}> {selectedDay} </Typography>
               <IconButton onClick={() => handleChangeDay(1)} aria-label="Next Day" size="small" sx={{ color: 'text.primary' }}> <ArrowForwardIosIcon fontSize="inherit" /> </IconButton>
           </Stack>
 
           {/* Animated Content Area */}
           <AnimatePresence initial={false} mode='wait'>
-            {/* Using updated faster transition */}
             <motion.div key={selectedDay} variants={variants} initial="enter" animate="center" exit="exit" transition={transition} >
               {/* Content Box */}
               <Box sx={{ pb: 2 }}>
-                {/* Fitness Card */}
+                {/* Fitness Card (using user's conditional render) */}
                 <Card sx={{ mb: 2, boxShadow: 2 }}>
                     <CardContent sx={{ p: 2 }}>
                       <Typography variant="h6" fontWeight="bold" gutterBottom>🏋️ Fitness</Typography>
                       {fitness ? (
-                         <FormControlLabel
-                            control={ <Checkbox size="small" checked={checkedItems["fitness"] || false} onChange={() => handleCheck("fitness")} /> }
-                            label={fitness}
-                            sx={{ display: 'flex', alignItems: 'flex-start', ml: 0 }} />
+                         <FormControlLabel control={ <Checkbox size="small" checked={checkedItems["fitness"] || false} onChange={() => handleCheck("fitness")} /> } label={fitness} sx={{ display: 'flex', alignItems: 'flex-start', ml: 0 }} />
                        ) : (
                          <Typography variant="body2" color="text.secondary">No fitness activity planned.</Typography>
                        )}
                     </CardContent>
                 </Card>
-                {/* Meals Card */}
+                {/* Meals Card (using user's conditional render) */}
                 <Card sx={{ mb: 2, boxShadow: 2 }}>
                     <CardContent sx={{ p: 2 }}>
                       <Typography variant="h6" fontWeight="bold" gutterBottom>🍽️ Meals</Typography>
                       {meals.length > 0 ? meals.map((meal, i) => (
-                         <FormControlLabel
-                            key={i}
-                            sx={{ display: 'flex', alignItems: 'flex-start', mb: 1, ml: 0 }}
-                            control={ <Checkbox size="small" checked={checkedItems[`meal-${i}`] || false} onChange={() => handleCheck(`meal-${i}`)} sx={{ pt: 0.5 }}/> }
-                            label={ <Box> <Typography fontWeight="bold" variant="body1">{meal.name}</Typography> <Typography variant="body2" color="text.secondary">{meal.recipe}</Typography> </Box> } />
+                         <FormControlLabel key={i} sx={{ display: 'flex', alignItems: 'flex-start', mb: 1, ml: 0 }} control={ <Checkbox size="small" checked={checkedItems[`meal-${i}`] || false} onChange={() => handleCheck(`meal-${i}`)} sx={{ pt: 0.5 }}/> } label={ <Box> <Typography fontWeight="bold" variant="body1">{meal.name}</Typography> <Typography variant="body2" color="text.secondary">{meal.recipe}</Typography> </Box> } />
                        )) : (
                          <Typography variant="body2" color="text.secondary">No meals planned.</Typography>
                        )}
@@ -404,46 +354,61 @@ function App() {
         {/* --- End of Day View --- */}
 
 
-        {/* --- Grocery List --- */}
-        {/* Kept mt: 4 here, combined with mb: 2 above gives total space */}
+        {/* --- Grocery List (MERGED: Using Accordion Structure) --- */}
+        {/* This <Box> and its contents REPLACE the user's original Card-based grocery list */}
         <Box mt={4}>
           <Typography variant="h6" gutterBottom sx={{ mb: 2, color: 'text.primary' }}>🛒 Grocery List</Typography>
-          {/* --- UPDATED: Removed Grid container/item, mapping directly to Cards --- */}
-          {Object.keys(activeGroceries).length > 0 ? Object.entries(activeGroceries).map(([category, items]) => (
-              // Render a Card for each category, stacked vertically
-              <Card key={category} sx={{ mb: 2, boxShadow: 1 }}> {/* Added mb for spacing between cards */}
-                  <CardContent sx={{ p: 2 }}> {/* Adjusted padding slightly */}
-                      <Typography variant="subtitle1" fontWeight="bold" gutterBottom>{category}</Typography>
-                      {Array.isArray(items) && items.map((item, i) => (
-                         <FormControlLabel
-                            key={i}
-                            sx={{ display: 'block', mb: 0.5 }}
-                            control={ <Checkbox size="small" checked={groceryChecked[item] || false} onChange={() => setGroceryChecked(prev => ({ ...prev, [item]: !prev[item] })) } /> }
-                            label={<Typography variant="body2">{item}</Typography>} />
-                       ))}
-                  </CardContent>
-              </Card>
-           )) : (
+          {Object.keys(activeGroceries).length > 0 ? Object.entries(activeGroceries).map(([category, items], index) => (
+            <Accordion
+              key={category}
+              disableGutters
+              elevation={0}
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+                '&:not(:last-child)': { borderBottom: 0, },
+                '&:before': { display: 'none', },
+                mb: 1,
+                borderRadius: `${theme.shape.borderRadius}px !important`,
+                overflow: 'hidden'
+              }}
+            >
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                aria-controls={`grocery-panel-content-${index}`}
+                id={`grocery-panel-header-${index}`}
+                sx={{
+                    backgroundColor: 'rgba(0, 0, 0, .03)',
+                    minHeight: 48,
+                    '& .MuiAccordionSummary-content': { margin: '12px 0', fontWeight: 'bold' },
+                }}
+              >
+                <Typography>{category}</Typography>
+              </AccordionSummary>
+              <AccordionDetails sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
+                 {/* Defensive check for items from user's code */}
+                 {Array.isArray(items) && items.map((item, i) => (
+                   <FormControlLabel
+                     key={i}
+                     sx={{ mb: 0.5 }}
+                     control={ <Checkbox size="small" checked={groceryChecked[item] || false} onChange={() => setGroceryChecked(prev => ({ ...prev, [item]: !prev[item] })) } /> }
+                     label={<Typography variant="body2">{item}</Typography>}
+                   />
+                 ))}
+              </AccordionDetails>
+            </Accordion>
+          )) : (
              <Typography sx={{ color: 'text.secondary' }}>No grocery list available.</Typography>
            )}
-           {/* --- End UPDATED Grocery List Structure --- */}
         </Box>
         {/* --- End of Grocery List --- */}
 
-        {/* --- Confetti --- */}
-        {showConfetti && (
-            <Confetti
-                width={width}
-                height={height}
-                numberOfPieces={300}
-                recycle={false}
-                style={{ position: 'fixed', top: 0, left: 0, zIndex: 9999 }}
-            />
-        )}
+
+        {/* --- Confetti (from user's code) --- */}
+        {showConfetti && ( <Confetti width={width} height={height} numberOfPieces={300} recycle={false} style={{ position: 'fixed', top: 0, left: 0, zIndex: 9999 }} /> )}
 
       </Container> {/* End Main Content Container */}
 
-      {/* --- Static Footer Progress Bar - Restored --- */}
+      {/* --- Static Footer Progress Bar (from user's code) --- */}
       <AppBar position="fixed" sx={{ top: 'auto', bottom: 0, bgcolor: 'background.paper', borderTop: 1, borderColor: 'divider' }}>
         <Toolbar>
           <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: 2, px: { xs: 0, sm: 1 } }}>
