@@ -305,8 +305,8 @@ function App() {
   // --- Render ---
   return (
     <ThemeProvider theme={theme}>
-      {/* Header AppBar is position="sticky" */}
-      <AppBar position="sticky" elevation={1}>
+      {/* --- DEBUGGING: Reverted AppBar to position="static" --- */}
+      <AppBar position="static" elevation={1}>
         <Toolbar sx={{ justifyContent: 'center' }}>
           <FitnessCenterIcon sx={{ mr: 1 }} />
           <Typography variant="h6" component="div" sx={{ fontWeight: 'medium', mx: 1.5 }}>
@@ -321,9 +321,8 @@ function App() {
       {/* Apply gradient background using GlobalStyles */}
       <GlobalStyles styles={(theme) => ({ /* ... body gradient ... */ })} />
 
-      {/* --- ONLY CHANGE: Adjusted Container Padding --- */}
-      {/* Increased pt to prevent content hiding under sticky AppBar */}
-      <Container sx={{ pt: 9, pb: 10 }}>
+      {/* --- DEBUGGING: Reverted Container Padding --- */}
+      <Container sx={{ pt: 4, pb: 10 }}>
 
         {/* --- Preferences & Actions --- */}
         <Paper elevation={1} sx={{ p: 2, mb: 3, borderRadius: '16px' }}>
