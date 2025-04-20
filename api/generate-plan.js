@@ -53,8 +53,12 @@ Output ONLY valid JSON in the following structure, with no introductory text or 
 }`;
 
     // Call the OpenAI API
+    // *** Changed model to gpt-3.5-turbo as gpt-4 was causing a 404 error ***
+    // *** This might be due to API key access limitations. ***
+    // *** You can change this back to 'gpt-4' or another model like 'gpt-4-turbo' or 'gpt-4o' ***
+    // *** if you confirm your key has access to it. ***
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4', // Or whichever model you prefer
+      model: 'gpt-3.5-turbo', // Changed from 'gpt-4'
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.7,
       response_format: { type: 'json_object' }, // Request JSON output
@@ -70,8 +74,39 @@ Output ONLY valid JSON in the following structure, with no introductory text or 
     res.status(200).json(jsonData);
 
   } catch (error) {
-    console.error("Error calling OpenAI API:", error);
-    // Send an error response back to the frontend
-    res.status(500).json({ error: 'Failed to generate plan.', details: error.message });
+    // Log the specific error from OpenAI or JSON parsing
+    console.error("Error in API handler:", error);
+
+    // Check if the error is an OpenAI APIError and extract details
+    if (error instanceof OpenAI.APIError) {
+        console.error("OpenAI API Error Details:", {
+            status: error.status,
+            code: error.code,
+            type: error.type,
+            message: error.message,
+            param: error.param,
+        });
+         res.status(error.status || 500).json({
+            error: 'Failed to generate plan due to API error.',
+            details: {
+                message: error.message,
+                type: error.type,
+                code: error.code
+            }
+        });
+    } else if (error instanceof SyntaxError) {
+        // Handle JSON parsing errors specifically
+        console.error("JSON Parsing Error:", error.message);
+        res.status(500).json({
+            error: 'Failed to process the plan data.',
+            details: 'Error parsing the response from the AI model.'
+        });
+    } else {
+        // Handle other types of errors
+        res.status(500).json({
+            error: 'Failed to generate plan due to an unexpected server error.',
+            details: error.message
+        });
+    }
   }
 }; // <-- End of module.exports function
