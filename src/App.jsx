@@ -313,7 +313,7 @@ function App() {
   // --- Render ---
   return (
     <ThemeProvider theme={theme}>
-      {/* --- Header AppBar position set back to "sticky" --- */}
+      {/* Header AppBar is position="sticky" */}
       <AppBar position="sticky" elevation={1}>
         <Toolbar sx={{ justifyContent: 'center' }}>
           <FitnessCenterIcon sx={{ mr: 1 }} />
@@ -338,9 +338,9 @@ function App() {
         })}
       />
 
-      {/* --- Container Padding Adjusted for Sticky Header --- */}
-      {/* pt: 9 provides space below sticky header, pb: 10 provides space above fixed footer */}
-      <Container sx={{ pt: 9, pb: 10 }}>
+      {/* --- Container Padding Adjusted --- */}
+      {/* Reduced pt slightly, kept pb for footer */}
+      <Container sx={{ pt: 7, pb: 10 }}>
 
         {/* --- Preferences & Actions --- */}
         <Paper elevation={1} sx={{ p: 2, mb: 3, borderRadius: '16px' }}>
@@ -356,7 +356,8 @@ function App() {
           {/* Day Title and Navigation Buttons */}
           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
               <IconButton onClick={() => handleChangeDay(-1)} aria-label="Previous Day" size="small" sx={{ color: 'text.primary' }}> <ArrowBackIosNewIcon fontSize="inherit" /> </IconButton>
-              <Typography variant="h5" textAlign="center" fontWeight="medium" sx={{ color: 'text.primary' }}> {selectedDay} </Typography>
+              {/* --- Updated Typography for Day - Made Bold --- */}
+              <Typography variant="h5" textAlign="center" fontWeight="bold" sx={{ color: 'text.primary' }}> {selectedDay} </Typography>
               <IconButton onClick={() => handleChangeDay(1)} aria-label="Next Day" size="small" sx={{ color: 'text.primary' }}> <ArrowForwardIosIcon fontSize="inherit" /> </IconButton>
           </Stack>
 
