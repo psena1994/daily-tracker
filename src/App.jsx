@@ -339,8 +339,8 @@ function App() {
       />
 
       {/* --- Container Padding Adjusted --- */}
-      {/* Reduced pt slightly, kept pb for footer */}
-      <Container sx={{ pt: 7, pb: 10 }}>
+      {/* Reduced pt to 4 as requested */}
+      <Container sx={{ pt: 4, pb: 10 }}>
 
         {/* --- Preferences & Actions --- */}
         <Paper elevation={1} sx={{ p: 2, mb: 3, borderRadius: '16px' }}>
@@ -356,7 +356,7 @@ function App() {
           {/* Day Title and Navigation Buttons */}
           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
               <IconButton onClick={() => handleChangeDay(-1)} aria-label="Previous Day" size="small" sx={{ color: 'text.primary' }}> <ArrowBackIosNewIcon fontSize="inherit" /> </IconButton>
-              {/* --- Updated Typography for Day - Made Bold --- */}
+              {/* Day Typography is fontWeight="bold" */}
               <Typography variant="h5" textAlign="center" fontWeight="bold" sx={{ color: 'text.primary' }}> {selectedDay} </Typography>
               <IconButton onClick={() => handleChangeDay(1)} aria-label="Next Day" size="small" sx={{ color: 'text.primary' }}> <ArrowForwardIosIcon fontSize="inherit" /> </IconButton>
           </Stack>
