@@ -141,7 +141,8 @@ function App() {
      // Expanded localStorage logic for checkedItemsByDay
      try {
        const stored = localStorage.getItem("checkedItemsByDay");
-       return stored ? JSON.parse(stored) : {}; // Default to empty object
+       const parsed = stored ? JSON.parse(stored) : null;
+       return typeof parsed === 'object' && parsed !== null ? parsed : {};
      } catch (e) {
        console.error("Failed to parse checkedItemsByDay from localStorage", e);
        return {}; // Return default on error
@@ -151,7 +152,8 @@ function App() {
      // Expanded localStorage logic for groceryChecked
      try {
        const stored = localStorage.getItem("groceryChecked");
-       return stored ? JSON.parse(stored) : {}; // Default to empty object
+       const parsed = stored ? JSON.parse(stored) : null;
+       return typeof parsed === 'object' && parsed !== null ? parsed : {};
      } catch (e) {
        console.error("Failed to parse groceryChecked from localStorage", e);
        return {}; // Return default on error
@@ -161,7 +163,8 @@ function App() {
      // Expanded localStorage logic for dynamicPlan
      try {
        const stored = localStorage.getItem("dynamicPlan");
-       return stored ? JSON.parse(stored) : null; // Default to null
+       const parsed = stored ? JSON.parse(stored) : null;
+       return typeof parsed === 'object' && parsed !== null ? parsed : null;
      } catch (e) {
        console.error("Failed to parse dynamicPlan from localStorage", e);
        return null; // Return default on error
@@ -171,7 +174,8 @@ function App() {
      // Expanded localStorage logic for dynamicGroceries
      try {
        const stored = localStorage.getItem("dynamicGroceries");
-       return stored ? JSON.parse(stored) : null; // Default to null
+       const parsed = stored ? JSON.parse(stored) : null;
+       return typeof parsed === 'object' && parsed !== null ? parsed : null;
      } catch (e) {
        console.error("Failed to parse dynamicGroceries from localStorage", e);
        return null; // Return default on error
@@ -193,11 +197,15 @@ function App() {
 
   // Expanded progress calculation
   const progress = useMemo(() => {
-    const total = meals.length + (fitness ? 1 : 0); // Only count fitness if it exists
-    if (total === 0) return 0; // Handle case with no meals and no fitness string
+    // Ensure meals is definitely an array and checkedItems is an object
+    const currentMeals = Array.isArray(meals) ? meals : [];
+    const currentChecks = typeof checkedItems === 'object' && checkedItems !== null ? checkedItems : {};
 
-    const completedMeals = meals.filter((_, i) => checkedItems[`meal-${i}`]).length;
-    const completedFitness = (fitness && checkedItems["fitness"]) ? 1 : 0; // Only count checked fitness if it exists
+    const total = currentMeals.length + (fitness ? 1 : 0);
+    if (total === 0) return 0;
+
+    const completedMeals = currentMeals.filter((_, i) => currentChecks[`meal-${i}`]).length;
+    const completedFitness = (fitness && currentChecks["fitness"]) ? 1 : 0;
 
     return Math.round(((completedMeals + completedFitness) / total) * 100);
   }, [checkedItems, meals, fitness]);
@@ -305,7 +313,7 @@ function App() {
   // --- Render ---
   return (
     <ThemeProvider theme={theme}>
-      {/* --- DEBUGGING: Reverted AppBar to position="static" --- */}
+      {/* AppBar reverted to static for debugging */}
       <AppBar position="static" elevation={1}>
         <Toolbar sx={{ justifyContent: 'center' }}>
           <FitnessCenterIcon sx={{ mr: 1 }} />
@@ -318,10 +326,10 @@ function App() {
       {/* --- End Header --- */}
 
       <CssBaseline />
-      {/* Apply gradient background using GlobalStyles */}
-      <GlobalStyles styles={(theme) => ({ /* ... body gradient ... */ })} />
+      {/* --- DEBUGGING: GlobalStyles Commented Out --- */}
+      {/* <GlobalStyles styles={(theme) => ({ body: { background: `linear-gradient(180deg, ${theme.palette.primary.light} 0%, ${theme.palette.secondary.light} 100%)`, backgroundAttachment: 'fixed', minHeight: '100vh', margin: 0, }, })} /> */}
 
-      {/* --- DEBUGGING: Reverted Container Padding --- */}
+      {/* Container padding reverted for debugging */}
       <Container sx={{ pt: 4, pb: 10 }}>
 
         {/* --- Preferences & Actions --- */}
