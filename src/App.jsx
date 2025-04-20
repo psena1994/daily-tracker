@@ -12,7 +12,8 @@ import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import ListAltIcon from "@mui/icons-material/ListAlt";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
-import { blueGrey } from "@mui/material/colors";
+// Import new colors for the theme
+import { teal, amber } from "@mui/material/colors"; // Changed from blueGrey
 import Confetti from "react-confetti";
 import { useWindowSize } from "@react-hook/window-size";
 import { motion, AnimatePresence } from "framer-motion";
@@ -289,12 +290,23 @@ function App() {
     }
   };
 
-  // --- Expanded Theme ---
+  // --- Updated Theme with Teal and Amber ---
   const theme = createTheme({
       palette: {
         mode: "light",
-        primary: blueGrey,
-        background: { default: "#f4f7f9", paper: "#ffffff" }
+        primary: { // Use teal as primary
+          main: teal[500], // Main shade
+          light: teal[300],
+          dark: teal[700],
+          contrastText: '#ffffff', // Ensure text on primary buttons is readable
+        },
+        secondary: { // Use amber as secondary/accent
+          main: amber[700], // Main shade for accents
+          light: amber[500],
+          dark: amber[900],
+          contrastText: 'rgba(0, 0, 0, 0.87)', // Ensure text on secondary buttons is readable
+        },
+        background: { default: "#f4f7f9", paper: "#ffffff" } // Keep light background
       },
       shape: { borderRadius: 12 }
   });
@@ -308,6 +320,7 @@ function App() {
       <Container sx={{ pt: 2, pb: 10 }}> {/* Increased pb */}
 
         {/* --- Preferences & Actions --- */}
+        {/* Buttons will now use the primary (teal) color */}
         <Paper elevation={1} sx={{ p: 2, mb: 3, borderRadius: '16px' }}>
             <TextField fullWidth label="Your Dietary Preferences & Goals" value={userPrefs} onChange={(e) => setUserPrefs(e.target.value)} sx={{ mb: 2 }} variant="outlined" size="small"/>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} >
@@ -331,6 +344,7 @@ function App() {
               {/* Content Box */}
               <Box sx={{ pb: 2 }}>
                 {/* Fitness Card */}
+                {/* Checkboxes will use the primary (teal) color */}
                 <Card sx={{ mb: 2, boxShadow: 2 }}>
                     <CardContent sx={{ p: 2 }}>
                       <Typography variant="h6" fontWeight="bold" gutterBottom>🏋️ Fitness</Typography>
@@ -352,19 +366,13 @@ function App() {
                     </CardContent>
                 </Card>
 
-                {/* --- PROGRESS BAR MOVED TO FOOTER --- */}
-                {/*
-                <Box sx={{ mb: 2, px: 2 }}>
-                    <Typography variant="body2" sx={{ mb: 1 }}> Daily Progress: {progress}% </Typography>
-                    <LinearProgress variant="determinate" value={progress} sx={{ height: 8, borderRadius: 4 }} />
-                </Box>
-                */}
               </Box>
             </motion.div>
           </AnimatePresence>
         </Box>
 
         {/* --- Grocery List --- */}
+        {/* Checkboxes will use the primary (teal) color */}
         <Box mt={4}>
           <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>🛒 Grocery List</Typography>
           <Grid container spacing={2}>
@@ -398,7 +406,8 @@ function App() {
 
       </Container> {/* End Main Content Container */}
 
-      {/* --- NEW Static Footer Progress Bar --- */}
+      {/* --- Static Footer Progress Bar --- */}
+      {/* Progress bar will use primary (teal) and secondary (amber) for completion */}
       <AppBar position="fixed" sx={{ top: 'auto', bottom: 0, bgcolor: 'background.paper', borderTop: 1, borderColor: 'divider' }}>
         <Toolbar>
           <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: 2, px: { xs: 0, sm: 1 } }}> {/* Add some padding on larger screens */}
@@ -409,7 +418,7 @@ function App() {
               variant="determinate"
               value={progress}
               sx={{ height: 10, borderRadius: 5, flexGrow: 1 }} // Make bar grow
-              color={progress === 100 ? "success" : "primary"} // Change color on completion
+              color={progress === 100 ? "secondary" : "primary"} // Use secondary (amber) color on completion
             />
             <Typography variant="body2" color="text.primary" fontWeight="medium" sx={{ minWidth: '40px', textAlign: 'right' }}>
               {progress}%
