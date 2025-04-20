@@ -300,7 +300,7 @@ function App() {
       />
 
       {/* --- Main Content Container (using user's padding) --- */}
-      <Container sx={{ pt: 7, pb: 10 }}> {/* Adjusted padding */}
+      <Container sx={{ pt: 4, pb: 10 }}> {/* Adjusted padding */}
 
         {/* --- Preferences & Actions (from user's code) --- */}
         <Paper elevation={1} sx={{ p: 2, mb: 3, borderRadius: '16px' }}>
