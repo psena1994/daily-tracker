@@ -310,7 +310,16 @@ function App() {
         {/* --- End of Grocery List --- */}
 
         {/* --- Confetti --- */}
-        {showConfetti && ( /* ... confetti component ... */ )}
+        {showConfetti && (
+            <Confetti
+                width={width}
+                height={height}
+                numberOfPieces={300}
+                recycle={false}
+                style={{ position: 'fixed', top: 0, left: 0, zIndex: 9999 }} // Ensure it covers screen
+            />
+        )}
+        {/* --- End Confetti --- */}
       </Container>
     </ThemeProvider>
   );
