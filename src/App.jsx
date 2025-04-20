@@ -1,8 +1,8 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef, useLayoutEffect } from "react"; // Added useRef, useLayoutEffect
 import {
   AppBar, Toolbar, Typography, Tabs, Tab, Box, Card, CardContent, Checkbox,
   FormControlLabel, Grid, Container, CssBaseline, createTheme, ThemeProvider,
-  Divider, LinearProgress, Switch, Grow, Button, TextField, Stack // Added Stack
+  Divider, LinearProgress, Switch, Grow, Button, TextField, Stack, Paper // Added Paper (optional), Stack
 } from "@mui/material";
 import ListAltIcon from "@mui/icons-material/ListAlt";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
@@ -12,24 +12,24 @@ import Confetti from "react-confetti";
 import { useWindowSize } from "@react-hook/window-size";
 import { motion, AnimatePresence } from "framer-motion";
 
-// Swipe transition variants (No changes needed here)
+// Swipe transition variants - Simplified opacity for smoother height transition
 const variants = {
   enter: (dir) => ({
     x: dir > 0 ? -window.innerWidth : window.innerWidth,
-    opacity: 0, // Fade in
-    position: "absolute",
+    opacity: 0,
+    position: "absolute", // Keep absolute for slide effect
     width: "100%"
   }),
   center: {
     x: 0,
-    opacity: 1, // Fully visible
-    position: "absolute",
+    opacity: 1,
+    position: "absolute", // Keep absolute for slide effect
     width: "100%"
   },
   exit: (dir) => ({
     x: dir > 0 ? window.innerWidth : -window.innerWidth,
-    opacity: 0, // Fade out
-    position: "absolute",
+    opacity: 0,
+    position: "absolute", // Keep absolute for slide effect
     width: "100%"
   })
 };
@@ -37,30 +37,16 @@ const variants = {
 
 const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-// Default plan (No changes needed here)
-const defaultPlan = {
-  Monday: { fitness: "🚴‍♂️ Bike commute to work", meals: [ /*...*/ ] },
-  Tuesday: { fitness: "🚶 Stretch + 15 min walk post-work", meals: [ /*...*/ ] },
-  Wednesday: { fitness: "🏋️‍♂️ Bodyweight workout", meals: [ /*...*/ ] },
-  Thursday: { fitness: "🚴‍♀️ Bike commute to work", meals: [ /*...*/ ] },
-  Friday: { fitness: "🧘‍♂️ Stretchy + short walky", meals: [ /*...*/ ] },
-  Saturday: { fitness: "🥾 Outdoor hike or long walk", meals: [ /*...*/ ] },
-  Sunday: { fitness: "🛌 Full rest day with optional stretch", meals: [ /*...*/ ] }
-};
+// Default plan (structure assumed)
+const defaultPlan = { /* ... */ };
 
-// Default groceries (No changes needed here)
-const defaultGroceries = {
-  "🍗 Protein": ["12 Eggs", "1.4 kg Chicken breast", "700 g Lean beef", "1.2 kg Greek yogurt", "500 g Protein powder"],
-  "🍞 Carbs": ["14 Bananas", "4 Sweet potatoes", "2 kg Potatoes", "300 g Quinoa", "20 Dates"],
-  "🥦 Fruits & Veg": ["500 g Strawberries", "300 g Blueberries", "150 g Spinach", "3 Bell peppers", "150 g Arugula", "1 Lettuce head", "6 Figs", "500 g Grapes", "4 Oranges", "5 Apples"],
-  "🧂 Condiments": ["150 ml Honey", "20 g Cinnamon", "50 g Pink salt", "100 ml Barbecue sauce", "100 ml Coconut oil", "100 ml Maple syrup"],
-  "🍿 Snacks": ["100 g Dark chocolate", "2 bags Popcorn", "3 Granola bars"]
-};
+// Default groceries (structure assumed)
+const defaultGroceries = { /* ... */ };
 
 
 // Main App Component
 function App() {
-  // State variables (No changes needed here)
+  // --- State ---
   const [userPrefs, setUserPrefs] = useState("high protein, gluten-free");
   const [selectedDay, setSelectedDay] = useState(() => localStorage.getItem("selectedDay") || days[new Date().getDay()]);
   const [checkedItemsByDay, setCheckedItemsByDay] = useState(() => { /* ...localStorage */ });
@@ -70,155 +56,221 @@ function App() {
   const [direction, setDirection] = useState(0);
   const [loadingPlan, setLoadingPlan] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [dayContentHeight, setDayContentHeight] = useState('auto'); // State for dynamic height
+
+  // --- Refs ---
+  const dayContentRef = useRef(null); // Ref to measure the inner content box
+
+  // --- Hooks ---
   const [width, height] = useWindowSize();
 
-  // Derived state (No changes needed here)
+  // --- Derived State ---
   const activePlan = dynamicPlan ?? defaultPlan;
   const activeGroceries = dynamicGroceries ?? defaultGroceries;
   const meals = activePlan[selectedDay]?.meals || [];
   const fitness = activePlan[selectedDay]?.fitness || "";
   const checkedItems = checkedItemsByDay[selectedDay] || {};
 
-  // progress calculation (No changes needed here)
-  const progress = useMemo(() => { /* ... */ }, [checkedItems, meals]);
+  // --- Memos ---
+  const progress = useMemo(() => {
+      const total = (meals?.length || 0) + 1; // +1 for fitness
+      const completedMeals = meals?.filter((_, i) => checkedItems[`meal-${i}`]).length || 0;
+      const completedFitness = checkedItems["fitness"] ? 1 : 0;
+      return total > 0 ? Math.round(((completedMeals + completedFitness) / total) * 100) : 0;
+  }, [checkedItems, meals]);
 
-  // useEffect hooks for localStorage and confetti (No changes needed here)
-  useEffect(() => { /* ...localStorage */ }, [selectedDay, checkedItemsByDay, groceryChecked, dynamicPlan, dynamicGroceries]);
-  useEffect(() => { /* ...confetti */ }, [progress, showConfetti]);
+  // --- Effects ---
+  // LocalStorage Sync
+  useEffect(() => { /* ...localStorage sync logic... */ }, [selectedDay, checkedItemsByDay, groceryChecked, dynamicPlan, dynamicGroceries]);
 
-  // handleSwipe function (No changes needed here)
-  const handleSwipe = (dir) => { /* ... */ };
+  // Confetti Trigger
+  useEffect(() => { /* ...confetti logic... */ }, [progress, showConfetti]);
 
-  // handleCheck function (No changes needed here)
+  // --- Dynamic Height Calculation ---
+  useLayoutEffect(() => {
+    // Measure height after render but before paint when selectedDay or plan changes
+    if (dayContentRef.current) {
+      const measuredHeight = dayContentRef.current.scrollHeight; // Get the full scroll height
+      setDayContentHeight(`${measuredHeight}px`);
+    } else {
+        setDayContentHeight('auto'); // Fallback
+    }
+    // Rerun when the day changes OR the plan data changes (meals/fitness might change height)
+  }, [selectedDay, activePlan]);
+
+
+  // --- Handlers ---
+  const handleSwipe = (dir) => {
+    const currentIndex = days.indexOf(selectedDay);
+    let newIndex;
+    if (dir === "LEFT") {
+      newIndex = (currentIndex + 1) % days.length;
+      setDirection(1); // Swiping left means content comes from the right (positive direction)
+    } else if (dir === "RIGHT") {
+      newIndex = (currentIndex - 1 + days.length) % days.length;
+      setDirection(-1); // Swiping right means content comes from the left (negative direction)
+    }
+    setSelectedDay(days[newIndex]);
+  };
+
   const handleCheck = (key) => { /* ... */ };
-
-  // resetCustomPlan function (No changes needed here)
   const resetCustomPlan = () => { /* ... */ };
 
-  // handleGeneratePlan function (No changes needed here)
-  const handleGeneratePlan = async () => { /* ... calls /api/generate-plan ... */ };
+  const handleGeneratePlan = async () => {
+    setLoadingPlan(true);
+    try {
+      const response = await fetch('/api/generate-plan', { /* ... */ });
+      if (!response.ok) { /* ... error handling ... */ }
+      const { plan: newPlan, grocerySections: newGroceries } = await response.json();
+       if (!newPlan || !newGroceries || typeof newPlan !== 'object' || typeof newGroceries !== 'object') {
+          throw new Error("Received invalid data structure from API.");
+      }
+      setDynamicPlan(newPlan);
+      setDynamicGroceries(newGroceries);
+    } catch (err) {
+      console.error("Failed to fetch plan:", err);
+      // TODO: Replace alert with a Snackbar or other UI feedback
+      // alert(`Error generating plan: ${err.message}`);
+      console.error(`Error generating plan: ${err.message}`); // Log error for debugging
+    } finally {
+      setLoadingPlan(false);
+    }
+  };
 
-  // theme definition (No changes needed here)
+  // --- Theme ---
   const theme = createTheme({
-    palette: { /* ... */ },
+     palette: {
+      mode: "light",
+      primary: blueGrey,
+      background: { default: "#f4f7f9", paper: "#ffffff" } // Slightly adjusted background
+    },
     shape: { borderRadius: 12 }
   });
 
-  // --- Component Return (JSX) ---
+  // --- Render ---
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      {/* Main container with vertical padding */}
-      <Container sx={{ pt: 2, pb: 4 }}> {/* Reduced top padding, kept bottom */}
+      <Container sx={{ pt: 2, pb: 4 }}>
 
-        {/* Preferences Input */}
-        <TextField
-          fullWidth
-          label="Your Dietary Preferences & Goals"
-          value={userPrefs}
-          onChange={(e) => setUserPrefs(e.target.value)}
-          sx={{ mb: 2 }} // Keep bottom margin
-          variant="outlined"
-        />
-
-        {/* Action Buttons - Using Stack for better layout */}
-        <Stack
-          direction={{ xs: 'column', sm: 'row' }} // Stack vertically on extra-small, row otherwise
-          spacing={2} // Consistent spacing
-          sx={{ mb: 4 }} // Bottom margin before next section
-        >
-          <Button
-            variant="contained"
-            disabled={loadingPlan}
-            onClick={handleGeneratePlan}
-            startIcon={loadingPlan ? null : <RestartAltIcon />}
-            // Allow button to take full width on mobile when stacked
-            sx={{ width: { xs: '100%', sm: 'auto' } }}
-          >
-            {loadingPlan ? "Generating..." : "Generate Custom Plan"}
-          </Button>
-          <Button
+        {/* --- Preferences & Actions --- */}
+        <Paper elevation={1} sx={{ p: 2, mb: 3, borderRadius: theme.shape.borderRadius }}> {/* Wrap top controls in Paper */}
+          <TextField
+            fullWidth
+            label="Your Dietary Preferences & Goals"
+            value={userPrefs}
+            onChange={(e) => setUserPrefs(e.target.value)}
+            sx={{ mb: 2 }}
             variant="outlined"
-            onClick={resetCustomPlan}
-            // Allow button to take full width on mobile when stacked
-            sx={{ width: { xs: '100%', sm: 'auto' } }}
+            size="small" // Smaller text field
+          />
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={1.5} // Slightly reduced spacing
           >
-            Reset to Default
-          </Button>
-        </Stack>
-        {/* --- End of Action Buttons --- */}
+            <Button
+              variant="contained"
+              disabled={loadingPlan}
+              onClick={handleGeneratePlan}
+              startIcon={loadingPlan ? null : <RestartAltIcon />}
+              sx={{ width: { xs: '100%', sm: 'auto' } }}
+            >
+              {loadingPlan ? "Generating..." : "Generate Custom Plan"}
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={resetCustomPlan}
+              sx={{ width: { xs: '100%', sm: 'auto' } }}
+            >
+              Reset to Default
+            </Button>
+          </Stack>
+        </Paper>
+        {/* --- End Preferences & Actions --- */}
 
 
-        {/* Day view container - Relative positioning, manage spacing with margin */}
-        {/* Removed minHeight and overflow: hidden */}
-        <Box sx={{ position: "relative", mb: 4 }}> {/* Added bottom margin to create space */}
-          {/* AnimatePresence needs a direct child for key prop */}
+        {/* --- Day View Container (Dynamically Sized) --- */}
+        <Box
+          sx={{
+            position: "relative", // Needed for absolute positioning of children
+            mb: 4,
+            height: dayContentHeight, // Apply dynamic height
+            transition: 'height 0.35s ease-in-out', // Smooth height transition
+            overflow: 'hidden' // Hide overflow during animation/resize
+          }}
+        >
           <AnimatePresence initial={false} custom={direction}>
             <motion.div
-              key={selectedDay} // Key triggers animation on change
+              key={selectedDay}
               custom={direction}
               variants={variants}
               initial="enter"
               animate="center"
               exit="exit"
               transition={{
-                x: { type: "spring", stiffness: 300, damping: 30 },
-                opacity: { duration: 0.2 }
+                x: { type: "spring", stiffness: 300, damping: 35 }, // Adjusted damping
+                opacity: { duration: 0.3 }
               }}
               drag="x"
               dragConstraints={{ left: 0, right: 0 }}
-              dragElastic={0.8} // Slightly reduced elasticity
+              dragElastic={0.7} // Further reduced elasticity
               onDragEnd={(e, { offset, velocity }) => {
                 const swipePower = Math.abs(offset.x) * velocity.x;
-                if (swipePower < -10000) { handleSwipe('LEFT'); }
-                else if (swipePower > 10000) { handleSwipe('RIGHT'); }
+                 // Increased threshold slightly for less sensitivity
+                if (swipePower < -12000) { handleSwipe('LEFT'); }
+                else if (swipePower > 12000) { handleSwipe('RIGHT'); }
               }}
-              // Style needed for absolute positioning during animation
-              style={{ width: '100%', position: 'absolute', top: 0, left: 0 }}
+              // Style ensures it fills the dynamically sized container
+              style={{
+                  width: '100%',
+                  height: '100%', // Fill the container
+                  position: 'absolute',
+                  top: 0,
+                  left: 0
+              }}
             >
-              {/* Inner Box for padding and content */}
-              {/* This Box defines the visible content for the day */}
-              <Box sx={{ pb: 2 }}> {/* Add some padding at the bottom of the day's content */}
+              {/* Inner Box for padding & content - THIS is measured */}
+              <Box ref={dayContentRef} sx={{ pb: 2 }}> {/* Assign ref here */}
                 <Typography variant="h5" textAlign="center" mb={2} fontWeight="medium">
                   {selectedDay}
                 </Typography>
 
                 {/* Fitness Card */}
-                <Card sx={{ mb: 2, boxShadow: 2 }}> {/* Slightly reduced shadow */}
-                  <CardContent>
+                <Card sx={{ mb: 2, boxShadow: 2 }}>
+                  <CardContent sx={{ p: 1.5 }}> {/* Reduced padding */}
                     <Typography variant="h6" fontWeight="bold" gutterBottom>🏋️ Fitness</Typography>
                     <FormControlLabel
-                      control={ <Checkbox checked={checkedItems["fitness"] || false} onChange={() => handleCheck("fitness")} /> }
+                      control={ <Checkbox size="small" checked={checkedItems["fitness"] || false} onChange={() => handleCheck("fitness")} /> } // Smaller checkbox
                       label={fitness || "No fitness activity planned."}
-                      sx={{ display: 'flex', alignItems: 'flex-start' }} // Align items better if label wraps
+                      sx={{ display: 'flex', alignItems: 'flex-start', ml: 0 }} // Align items, remove default margin
                     />
                   </CardContent>
                 </Card>
 
                 {/* Meals Card */}
                 <Card sx={{ mb: 2, boxShadow: 2 }}>
-                  <CardContent>
-                    <Typography variant="h6" fontWeight="bold" gutterBottom>🍽️ Meals</Typography>
-                    {meals.length > 0 ? meals.map((meal, i) => (
-                      <FormControlLabel
-                        key={i}
-                        sx={{ display: 'flex', alignItems: 'flex-start', mb: 1 }} // Align items, add margin
-                        control={ <Checkbox checked={checkedItems[`meal-${i}`] || false} onChange={() => handleCheck(`meal-${i}`)} sx={{ pt: 0.5 }}/> } // Adjust checkbox padding
-                        label={
-                          <Box>
-                            <Typography fontWeight="bold">{meal.name}</Typography>
-                            <Typography variant="body2" color="text.secondary">{meal.recipe}</Typography>
-                          </Box>
-                        }
-                      />
-                    )) : (
-                       <Typography variant="body2" color="text.secondary">No meals planned for this day.</Typography>
-                    )}
+                  <CardContent sx={{ p: 1.5 }}> {/* Reduced padding */}
+                     <Typography variant="h6" fontWeight="bold" gutterBottom>🍽️ Meals</Typography>
+                     {meals.length > 0 ? meals.map((meal, i) => (
+                       <FormControlLabel
+                         key={i}
+                         sx={{ display: 'flex', alignItems: 'flex-start', mb: 0.5, ml: 0 }} // Align items, reduce margin
+                         control={ <Checkbox size="small" checked={checkedItems[`meal-${i}`] || false} onChange={() => handleCheck(`meal-${i}`)} sx={{ pt: 0.5 }}/> }
+                         label={
+                           <Box>
+                             <Typography fontWeight="bold" variant="body1">{meal.name}</Typography> {/* Slightly larger meal name */}
+                             <Typography variant="body2" color="text.secondary">{meal.recipe}</Typography>
+                           </Box>
+                         }
+                       />
+                     )) : (
+                        <Typography variant="body2" color="text.secondary">No meals planned.</Typography>
+                     )}
                   </CardContent>
                 </Card>
 
                 {/* Progress Bar */}
-                <Box sx={{ mb: 2 }}>
+                <Box sx={{ mb: 2, px: 1.5 }}> {/* Add padding to align with card content */}
                   <Typography variant="body2" sx={{ mb: 1 }}>
                     Daily Progress: {progress}%
                   </Typography>
@@ -227,36 +279,26 @@ function App() {
               </Box>
             </motion.div>
           </AnimatePresence>
-          {/* Placeholder Box to reserve space based on typical content height */}
-          {/* This helps prevent the grocery list jumping up too much */}
-          {/* Adjust height based on testing average content size */}
-          <Box sx={{ visibility: 'hidden', minHeight: '450px' }} aria-hidden="true">
-             {/* Render minimal content structure to estimate height */}
-             <Typography variant="h5" mb={2}>&nbsp;</Typography>
-             <Card sx={{ mb: 2 }}><CardContent><Typography variant="h6" gutterBottom>&nbsp;</Typography></CardContent></Card>
-             <Card sx={{ mb: 2 }}><CardContent><Typography variant="h6" gutterBottom>&nbsp;</Typography></CardContent></Card>
-             <Box sx={{ mb: 2 }}><Typography variant="body2" sx={{ mb: 1 }}>&nbsp;</Typography><LinearProgress variant="determinate" value={0} /></Box>
-          </Box>
+          {/* Removed the hidden placeholder Box */}
         </Box>
         {/* --- End of Day View --- */}
 
 
-        {/* Grocery List */}
-        <Box mt={2}> {/* Reduced margin top slightly */}
-          <Typography variant="h6" gutterBottom>🛒 Grocery List</Typography>
+        {/* --- Grocery List --- */}
+        <Box mt={2}>
+          <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>🛒 Grocery List</Typography>
           <Grid container spacing={2}>
             {Object.entries(activeGroceries).map(([category, items]) => (
-              // Keep xs={12} for full width on mobile
               <Grid item xs={12} sm={6} md={4} key={category}>
-                <Card sx={{ height: '100%', boxShadow: 1 }}> {/* Lighter shadow */}
-                  <CardContent>
+                <Card sx={{ height: '100%', boxShadow: 1 }}>
+                  <CardContent sx={{ p: 1.5 }}> {/* Reduced padding */}
                     <Typography variant="subtitle1" fontWeight="bold" gutterBottom>{category}</Typography>
                     {items.map((item, i) => (
                       <FormControlLabel
                         key={i}
-                        sx={{ display: 'block' }}
+                        sx={{ display: 'block', mb: -0.5 }} // Negative margin to tighten list
                         control={ <Checkbox size="small" checked={groceryChecked[item] || false} onChange={() => setGroceryChecked(prev => ({ ...prev, [item]: !prev[item] })) } /> }
-                        label={item}
+                        label={<Typography variant="body2">{item}</Typography>} // Ensure label uses body2
                       />
                     ))}
                   </CardContent>
@@ -267,16 +309,8 @@ function App() {
         </Box>
         {/* --- End of Grocery List --- */}
 
-        {/* Confetti (fixed position) */}
-        {showConfetti && (
-            <Confetti
-                width={width}
-                height={height}
-                numberOfPieces={300}
-                recycle={false}
-                style={{ position: 'fixed', top: 0, left: 0, zIndex: 9999 }}
-            />
-        )}
+        {/* --- Confetti --- */}
+        {showConfetti && ( /* ... confetti component ... */ )}
       </Container>
     </ThemeProvider>
   );
