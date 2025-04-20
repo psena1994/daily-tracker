@@ -38,7 +38,7 @@ const transition = { duration: 0.2, ease: "easeInOut" };
 // Days array
 const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-// Default plan
+// Default plan (Full data)
 const defaultPlan = {
   Monday: {
     fitness: "🚴‍♂️ Bike commute to work",
@@ -112,7 +112,7 @@ const defaultPlan = {
   }
 };
 
-// Default groceries
+// Default groceries (Full data)
 const defaultGroceries = {
   "🍗 Protein": ["12 Eggs", "1.4 kg Chicken breast", "700 g Lean beef", "1.2 kg Greek yogurt", "500 g Protein powder"],
   "🍞 Carbs": ["14 Bananas", "4 Sweet potatoes", "2 kg Potatoes", "300 g Quinoa", "20 Dates"],
@@ -127,16 +127,14 @@ function App() {
   // --- State & Refs ---
   const [userPrefs, setUserPrefs] = useState("high protein, gluten-free");
   const [selectedDate, setSelectedDate] = useState(() => {
-      const storedDateString = localStorage.getItem("selectedDate"); // Look for stored date string
+      const storedDateString = localStorage.getItem("selectedDate");
       if (storedDateString) {
           const storedDate = new Date(storedDateString);
-          // Basic validation: Check if it's a valid date
           if (!isNaN(storedDate.getTime())) {
-              storedDate.setHours(0, 0, 0, 0); // Normalize time
+              storedDate.setHours(0, 0, 0, 0);
               return storedDate;
           }
       }
-      // Default to today, ensuring time is reset
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       return today;
@@ -148,7 +146,7 @@ function App() {
        return typeof parsed === 'object' && parsed !== null ? parsed : {};
      } catch (e) {
        console.error("Failed to parse checkedItemsByDay from localStorage", e);
-       return {}; // Return default on error
+       return {};
      }
   });
   const [groceryChecked, setGroceryChecked] = useState(() => {
@@ -158,7 +156,7 @@ function App() {
        return typeof parsed === 'object' && parsed !== null ? parsed : {};
      } catch (e) {
        console.error("Failed to parse groceryChecked from localStorage", e);
-       return {}; // Return default on error
+       return {};
      }
   });
   const [dynamicPlan, setDynamicPlan] = useState(() => {
@@ -168,7 +166,7 @@ function App() {
        return typeof parsed === 'object' && parsed !== null ? parsed : null;
      } catch (e) {
        console.error("Failed to parse dynamicPlan from localStorage", e);
-       return null; // Return default on error
+       return null;
      }
   });
   const [dynamicGroceries, setDynamicGroceries] = useState(() => {
@@ -178,7 +176,7 @@ function App() {
        return typeof parsed === 'object' && parsed !== null ? parsed : null;
      } catch (e) {
        console.error("Failed to parse dynamicGroceries from localStorage", e);
-       return null; // Return default on error
+       return null;
      }
   });
   const [loadingPlan, setLoadingPlan] = useState(false);
@@ -269,10 +267,11 @@ function App() {
 
   // --- Helper function to format date display ---
   const formatDateDisplay = (date) => {
-      return date.toLocaleDateString(navigator.language || 'en-US', {
-          weekday: 'long',
-          day: 'numeric'
-      });
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const day = date.getDate();
+      const month = months[date.getMonth()];
+      const year = date.getFullYear();
+      return `${day} ${month} ${year}`;
   };
 
   // --- Render ---
@@ -280,14 +279,14 @@ function App() {
     <ThemeProvider theme={theme}>
       {/* Header */}
       <AppBar position="sticky" elevation={1}>
-        <Toolbar sx={{ justifyContent: 'center' }}>
-          <FitnessCenterIcon sx={{ mr: 1 }} />
-          <Typography variant="h6" component="div" sx={{ fontWeight: 'medium', mx: 1.5 }}>
-            Easy Fitness Planner
-          </Typography>
-          <RestaurantMenuIcon sx={{ ml: 1 }} />
-        </Toolbar>
-      </AppBar>
+         <Toolbar sx={{ justifyContent: 'center' }}>
+           <FitnessCenterIcon sx={{ mr: 1 }} />
+           <Typography variant="h6" component="div" sx={{ fontWeight: 'medium', mx: 1.5 }}>
+             Easy Fitness Planner
+           </Typography>
+           <RestaurantMenuIcon sx={{ ml: 1 }} />
+         </Toolbar>
+       </AppBar>
 
       <CssBaseline />
       {/* Gradient Background */}
@@ -303,15 +302,15 @@ function App() {
       />
 
       {/* Main Content Container */}
-      <Container sx={{ pt: 7, pb: 10 }}>
+      <Container sx={{ pt: 4, pb: 10 }}>
 
         {/* Preferences & Actions */}
         <Paper elevation={1} sx={{ p: 2, mb: 3, borderRadius: '16px' }}>
-            <TextField fullWidth label="Your Dietary Preferences & Goals" value={userPrefs} onChange={(e) => setUserPrefs(e.target.value)} sx={{ mb: 2 }} variant="outlined" size="small"/>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} >
-              <Button variant="contained" disabled={loadingPlan} onClick={handleGeneratePlan} startIcon={loadingPlan ? null : <RestartAltIcon />} sx={{ width: { xs: '100%', sm: 'auto' } }}> {loadingPlan ? "Generating..." : "Generate Custom Plan"} </Button>
-              <Button variant="outlined" onClick={resetCustomPlan} sx={{ width: { xs: '100%', sm: 'auto' } }}> Reset to Default </Button>
-            </Stack>
+           <TextField fullWidth label="Your Dietary Preferences & Goals" value={userPrefs} onChange={(e) => setUserPrefs(e.target.value)} sx={{ mb: 2 }} variant="outlined" size="small"/>
+           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} >
+             <Button variant="contained" disabled={loadingPlan} onClick={handleGeneratePlan} startIcon={loadingPlan ? null : <RestartAltIcon />} sx={{ width: { xs: '100%', sm: 'auto' } }}> {loadingPlan ? "Generating..." : "Generate Custom Plan"} </Button>
+             <Button variant="outlined" onClick={resetCustomPlan} sx={{ width: { xs: '100%', sm: 'auto' } }}> Reset to Default </Button>
+           </Stack>
         </Paper>
 
         {/* Day View Container */}
