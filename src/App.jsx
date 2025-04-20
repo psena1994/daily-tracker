@@ -326,11 +326,21 @@ function App() {
       {/* --- End Header --- */}
 
       <CssBaseline />
-      {/* GlobalStyles still commented out for debugging */}
-      {/* <GlobalStyles styles={(theme) => ({ body: { background: `linear-gradient(180deg, ${theme.palette.primary.light} 0%, ${theme.palette.secondary.light} 100%)`, backgroundAttachment: 'fixed', minHeight: '100vh', margin: 0, }, })} /> */}
+      {/* Apply gradient background using GlobalStyles - Restored */}
+      <GlobalStyles
+        styles={(theme) => ({
+          body: {
+            background: `linear-gradient(180deg, ${theme.palette.primary.light} 0%, ${theme.palette.secondary.light} 100%)`,
+            backgroundAttachment: 'fixed',
+            minHeight: '100vh',
+            margin: 0,
+          },
+        })}
+      />
 
-      {/* Container padding reverted for debugging, reduced bottom padding */}
-      <Container sx={{ pt: 4, pb: 4 }}> {/* Reduced pb */}
+      {/* Container padding reverted for debugging */}
+      {/* Use pb: 10 again now that footer is restored */}
+      <Container sx={{ pt: 4, pb: 10 }}>
 
         {/* --- Preferences & Actions --- */}
         <Paper elevation={1} sx={{ p: 2, mb: 3, borderRadius: '16px' }}>
@@ -359,14 +369,29 @@ function App() {
                 <Card sx={{ mb: 2, boxShadow: 2 }}>
                     <CardContent sx={{ p: 2 }}>
                       <Typography variant="h6" fontWeight="bold" gutterBottom>🏋️ Fitness</Typography>
-                      {fitness ? ( <FormControlLabel control={ <Checkbox size="small" /*...*/ /> } label={fitness} /*...*/ /> ) : ( <Typography /*...*/ >No fitness activity planned.</Typography> )}
+                      {fitness ? (
+                         <FormControlLabel
+                            control={ <Checkbox size="small" checked={checkedItems["fitness"] || false} onChange={() => handleCheck("fitness")} /> }
+                            label={fitness}
+                            sx={{ display: 'flex', alignItems: 'flex-start', ml: 0 }} />
+                       ) : (
+                         <Typography variant="body2" color="text.secondary">No fitness activity planned.</Typography>
+                       )}
                     </CardContent>
                 </Card>
                 {/* Meals Card */}
                 <Card sx={{ mb: 2, boxShadow: 2 }}>
                     <CardContent sx={{ p: 2 }}>
                       <Typography variant="h6" fontWeight="bold" gutterBottom>🍽️ Meals</Typography>
-                      {meals.length > 0 ? meals.map((meal, i) => ( <FormControlLabel key={i} /*...*/ /> )) : ( <Typography /*...*/ >No meals planned.</Typography> )}
+                      {meals.length > 0 ? meals.map((meal, i) => (
+                         <FormControlLabel
+                            key={i}
+                            sx={{ display: 'flex', alignItems: 'flex-start', mb: 1, ml: 0 }}
+                            control={ <Checkbox size="small" checked={checkedItems[`meal-${i}`] || false} onChange={() => handleCheck(`meal-${i}`)} sx={{ pt: 0.5 }}/> }
+                            label={ <Box> <Typography fontWeight="bold" variant="body1">{meal.name}</Typography> <Typography variant="body2" color="text.secondary">{meal.recipe}</Typography> </Box> } />
+                       )) : (
+                         <Typography variant="body2" color="text.secondary">No meals planned.</Typography>
+                       )}
                     </CardContent>
                 </Card>
               </Box>
@@ -383,21 +408,38 @@ function App() {
                       <Card sx={{ height: '100%', boxShadow: 1 }}>
                           <CardContent sx={{ p: 2.5 }}>
                               <Typography variant="subtitle1" fontWeight="bold" gutterBottom>{category}</Typography>
-                              {Array.isArray(items) && items.map((item, i) => ( <FormControlLabel key={i} /*...*/ /> ))}
+                              {Array.isArray(items) && items.map((item, i) => (
+                                 <FormControlLabel
+                                    key={i}
+                                    sx={{ display: 'block', mb: 0.5 }}
+                                    control={ <Checkbox size="small" checked={groceryChecked[item] || false} onChange={() => setGroceryChecked(prev => ({ ...prev, [item]: !prev[item] })) } /> }
+                                    label={<Typography variant="body2">{item}</Typography>} />
+                               ))}
                           </CardContent>
                       </Card>
                   </Grid>
-              )) : ( <Grid item xs={12}><Typography /*...*/ >No grocery list available.</Typography></Grid> )}
+              )) : (
+                 <Grid item xs={12}><Typography sx={{ color: 'text.secondary' }}>No grocery list available.</Typography></Grid>
+               )}
           </Grid>
         </Box>
 
         {/* --- Confetti --- */}
-        {showConfetti && ( <Confetti /*...*/ /> )}
+        {/* Restored full Confetti component */}
+        {showConfetti && (
+            <Confetti
+                width={width}
+                height={height}
+                numberOfPieces={300}
+                recycle={false}
+                style={{ position: 'fixed', top: 0, left: 0, zIndex: 9999 }}
+            />
+        )}
 
       </Container> {/* End Main Content Container */}
 
-      {/* --- DEBUGGING: Static Footer Progress Bar Commented Out --- */}
-      {/*
+      {/* --- Static Footer Progress Bar - Restored --- */}
+      {/* Uncommented the footer */}
       <AppBar position="fixed" sx={{ top: 'auto', bottom: 0, bgcolor: 'background.paper', borderTop: 1, borderColor: 'divider' }}>
         <Toolbar>
           <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: 2, px: { xs: 0, sm: 1 } }}>
@@ -407,7 +449,6 @@ function App() {
           </Box>
         </Toolbar>
       </AppBar>
-      */}
 
     </ThemeProvider>
   );
