@@ -313,8 +313,8 @@ function App() {
   // --- Render ---
   return (
     <ThemeProvider theme={theme}>
-      {/* AppBar reverted to static for debugging */}
-      <AppBar position="static" elevation={1}>
+      {/* --- Header AppBar position set back to "sticky" --- */}
+      <AppBar position="sticky" elevation={1}>
         <Toolbar sx={{ justifyContent: 'center' }}>
           <FitnessCenterIcon sx={{ mr: 1 }} />
           <Typography variant="h6" component="div" sx={{ fontWeight: 'medium', mx: 1.5 }}>
@@ -338,9 +338,9 @@ function App() {
         })}
       />
 
-      {/* Container padding reverted for debugging */}
-      {/* Use pb: 10 again now that footer is restored */}
-      <Container sx={{ pt: 4, pb: 10 }}>
+      {/* --- Container Padding Adjusted for Sticky Header --- */}
+      {/* pt: 9 provides space below sticky header, pb: 10 provides space above fixed footer */}
+      <Container sx={{ pt: 9, pb: 10 }}>
 
         {/* --- Preferences & Actions --- */}
         <Paper elevation={1} sx={{ p: 2, mb: 3, borderRadius: '16px' }}>
@@ -425,7 +425,6 @@ function App() {
         </Box>
 
         {/* --- Confetti --- */}
-        {/* Restored full Confetti component */}
         {showConfetti && (
             <Confetti
                 width={width}
@@ -439,7 +438,6 @@ function App() {
       </Container> {/* End Main Content Container */}
 
       {/* --- Static Footer Progress Bar - Restored --- */}
-      {/* Uncommented the footer */}
       <AppBar position="fixed" sx={{ top: 'auto', bottom: 0, bgcolor: 'background.paper', borderTop: 1, borderColor: 'divider' }}>
         <Toolbar>
           <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: 2, px: { xs: 0, sm: 1 } }}>
