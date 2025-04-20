@@ -10,8 +10,7 @@ import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import { blueGrey } from "@mui/material/colors";
 import Confetti from "react-confetti";
 import { useWindowSize } from "@react-hook/window-size";
-import { motion } from "framer-motion"; // add this line
-import AnimatePresence from "framer-motion/dist/framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import OpenAI from "openai";
 
 // OpenAI setup
