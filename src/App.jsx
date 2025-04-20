@@ -326,11 +326,11 @@ function App() {
       {/* --- End Header --- */}
 
       <CssBaseline />
-      {/* --- DEBUGGING: GlobalStyles Commented Out --- */}
+      {/* GlobalStyles still commented out for debugging */}
       {/* <GlobalStyles styles={(theme) => ({ body: { background: `linear-gradient(180deg, ${theme.palette.primary.light} 0%, ${theme.palette.secondary.light} 100%)`, backgroundAttachment: 'fixed', minHeight: '100vh', margin: 0, }, })} /> */}
 
-      {/* Container padding reverted for debugging */}
-      <Container sx={{ pt: 4, pb: 10 }}>
+      {/* Container padding reverted for debugging, reduced bottom padding */}
+      <Container sx={{ pt: 4, pb: 4 }}> {/* Reduced pb */}
 
         {/* --- Preferences & Actions --- */}
         <Paper elevation={1} sx={{ p: 2, mb: 3, borderRadius: '16px' }}>
@@ -396,7 +396,8 @@ function App() {
 
       </Container> {/* End Main Content Container */}
 
-      {/* --- Static Footer Progress Bar --- */}
+      {/* --- DEBUGGING: Static Footer Progress Bar Commented Out --- */}
+      {/*
       <AppBar position="fixed" sx={{ top: 'auto', bottom: 0, bgcolor: 'background.paper', borderTop: 1, borderColor: 'divider' }}>
         <Toolbar>
           <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: 2, px: { xs: 0, sm: 1 } }}>
@@ -406,6 +407,7 @@ function App() {
           </Box>
         </Toolbar>
       </AppBar>
+      */}
 
     </ThemeProvider>
   );
