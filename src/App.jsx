@@ -13,6 +13,8 @@ import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import ListAltIcon from "@mui/icons-material/ListAlt";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
+// Import icon for header
+import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 // Import new colors for the theme
 import { teal, amber } from "@mui/material/colors"; // Changed from blueGrey
 import Confetti from "react-confetti";
@@ -315,6 +317,17 @@ function App() {
   // --- Render ---
   return (
     <ThemeProvider theme={theme}>
+      {/* --- NEW: Top Header AppBar --- */}
+      <AppBar position="static" elevation={1}> {/* Use primary color from theme */}
+        <Toolbar>
+          <FitnessCenterIcon sx={{ mr: 1.5 }} /> {/* Add icon */}
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 'medium' }}>
+            Easy Fitness Planner {/* App Title */}
+          </Typography>
+          {/* Add other toolbar items here if needed (e.g., buttons) */}
+        </Toolbar>
+      </AppBar>
+
       <CssBaseline />
       {/* Apply gradient background using GlobalStyles */}
       <GlobalStyles
@@ -330,7 +343,8 @@ function App() {
       />
       {/* Add padding-bottom to the container to prevent overlap with the fixed footer */}
       {/* Adjust the value (e.g., 10) based on the footer's actual height */}
-      <Container sx={{ pt: 2, pb: 10 }}> {/* Increased pb */}
+      {/* pt={4} slightly increases top padding to account for AppBar */}
+      <Container sx={{ pt: 4, pb: 10 }}>
 
         {/* --- Preferences & Actions --- */}
         {/* Paper provides contrast against the gradient background */}
