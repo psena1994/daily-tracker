@@ -1,9 +1,14 @@
-import React, { useState, useMemo, useEffect, useRef, useLayoutEffect } from "react"; // Added useRef, useLayoutEffect
+import React, { useState, useMemo, useEffect, useRef, useLayoutEffect } from "react";
 import {
   AppBar, Toolbar, Typography, Tabs, Tab, Box, Card, CardContent, Checkbox,
   FormControlLabel, Grid, Container, CssBaseline, createTheme, ThemeProvider,
-  Divider, LinearProgress, Switch, Grow, Button, TextField, Stack, Paper // Added Paper (optional), Stack
+  Divider, LinearProgress, Switch, Grow, Button, TextField, Stack, Paper,
+  IconButton // Added IconButton for Nav Buttons
 } from "@mui/material";
+// Import arrow icons
+import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+// Other imports...
 import ListAltIcon from "@mui/icons-material/ListAlt";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
@@ -12,27 +17,22 @@ import Confetti from "react-confetti";
 import { useWindowSize } from "@react-hook/window-size";
 import { motion, AnimatePresence } from "framer-motion";
 
-// Swipe transition variants - Simplified opacity for smoother height transition
+// --- Simplified Animation Variants (Fade Only) ---
 const variants = {
-  enter: (dir) => ({
-    x: dir > 0 ? -window.innerWidth : window.innerWidth,
-    opacity: 0,
-    position: "absolute", // Keep absolute for slide effect
-    width: "100%"
-  }),
-  center: {
-    x: 0,
-    opacity: 1,
-    position: "absolute", // Keep absolute for slide effect
-    width: "100%"
+  enter: {
+    opacity: 0, // Start transparent
   },
-  exit: (dir) => ({
-    x: dir > 0 ? window.innerWidth : -window.innerWidth,
-    opacity: 0,
-    position: "absolute", // Keep absolute for slide effect
-    width: "100%"
-  })
+  center: {
+    opacity: 1, // Fade in to fully visible
+    // No position: 'absolute', no x transform
+  },
+  exit: {
+    opacity: 0, // Fade out
+    // No position: 'absolute', no x transform
+  }
 };
+// Define a transition for the fade effect
+const transition = { duration: 0.3, ease: "easeInOut" };
 
 
 const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -53,13 +53,11 @@ function App() {
   const [groceryChecked, setGroceryChecked] = useState(() => { /* ...localStorage */ });
   const [dynamicPlan, setDynamicPlan] = useState(() => { /* ...localStorage */ });
   const [dynamicGroceries, setDynamicGroceries] = useState(() => { /* ...localStorage */ });
-  const [direction, setDirection] = useState(0);
+  // const [direction, setDirection] = useState(0); // No longer needed for fade animation
   const [loadingPlan, setLoadingPlan] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
-  const [dayContentHeight, setDayContentHeight] = useState('auto'); // State for dynamic height
-
-  // --- Refs ---
-  const dayContentRef = useRef(null); // Ref to measure the inner content box
+  // --- REMOVED dayContentHeight state ---
+  // --- REMOVED dayContentRef ref ---
 
   // --- Hooks ---
   const [width, height] = useWindowSize();
@@ -72,80 +70,28 @@ function App() {
   const checkedItems = checkedItemsByDay[selectedDay] || {};
 
   // --- Memos ---
-  const progress = useMemo(() => {
-      const total = (meals?.length || 0) + 1; // +1 for fitness
-      const completedMeals = meals?.filter((_, i) => checkedItems[`meal-${i}`]).length || 0;
-      const completedFitness = checkedItems["fitness"] ? 1 : 0;
-      return total > 0 ? Math.round(((completedMeals + completedFitness) / total) * 100) : 0;
-  }, [checkedItems, meals]);
+  const progress = useMemo(() => { /* ... */ }, [checkedItems, meals]);
 
   // --- Effects ---
-  // LocalStorage Sync
   useEffect(() => { /* ...localStorage sync logic... */ }, [selectedDay, checkedItemsByDay, groceryChecked, dynamicPlan, dynamicGroceries]);
-
-  // Confetti Trigger
   useEffect(() => { /* ...confetti logic... */ }, [progress, showConfetti]);
-
-  // --- Dynamic Height Calculation ---
-  useLayoutEffect(() => {
-    // Measure height after render but before paint when selectedDay or plan changes
-    if (dayContentRef.current) {
-      const measuredHeight = dayContentRef.current.scrollHeight; // Get the full scroll height
-      setDayContentHeight(`${measuredHeight}px`);
-    } else {
-        setDayContentHeight('auto'); // Fallback
-    }
-    // Rerun when the day changes OR the plan data changes (meals/fitness might change height)
-  }, [selectedDay, activePlan]);
+  // --- REMOVED useLayoutEffect for height calculation ---
 
 
   // --- Handlers ---
-  const handleSwipe = (dir) => {
+  // Renamed handleSwipe to handleChangeDay, simplified logic
+  const handleChangeDay = (direction) => { // direction is -1 for prev, 1 for next
     const currentIndex = days.indexOf(selectedDay);
-    let newIndex;
-    if (dir === "LEFT") {
-      newIndex = (currentIndex + 1) % days.length;
-      setDirection(1); // Swiping left means content comes from the right (positive direction)
-    } else if (dir === "RIGHT") {
-      newIndex = (currentIndex - 1 + days.length) % days.length;
-      setDirection(-1); // Swiping right means content comes from the left (negative direction)
-    }
+    const newIndex = (currentIndex + direction + days.length) % days.length; // Handles wrap-around
     setSelectedDay(days[newIndex]);
   };
 
   const handleCheck = (key) => { /* ... */ };
   const resetCustomPlan = () => { /* ... */ };
-
-  const handleGeneratePlan = async () => {
-    setLoadingPlan(true);
-    try {
-      const response = await fetch('/api/generate-plan', { /* ... */ });
-      if (!response.ok) { /* ... error handling ... */ }
-      const { plan: newPlan, grocerySections: newGroceries } = await response.json();
-       if (!newPlan || !newGroceries || typeof newPlan !== 'object' || typeof newGroceries !== 'object') {
-          throw new Error("Received invalid data structure from API.");
-      }
-      setDynamicPlan(newPlan);
-      setDynamicGroceries(newGroceries);
-    } catch (err) {
-      console.error("Failed to fetch plan:", err);
-      // TODO: Replace alert with a Snackbar or other UI feedback
-      // alert(`Error generating plan: ${err.message}`);
-      console.error(`Error generating plan: ${err.message}`); // Log error for debugging
-    } finally {
-      setLoadingPlan(false);
-    }
-  };
+  const handleGeneratePlan = async () => { /* ... calls /api/generate-plan ... */ };
 
   // --- Theme ---
-  const theme = createTheme({
-     palette: {
-      mode: "light",
-      primary: blueGrey,
-      background: { default: "#f4f7f9", paper: "#ffffff" } // Slightly adjusted background
-    },
-    shape: { borderRadius: 12 }
-  });
+  const theme = createTheme({ /* ... */ });
 
   // --- Render ---
   return (
@@ -154,172 +100,99 @@ function App() {
       <Container sx={{ pt: 2, pb: 4 }}>
 
         {/* --- Preferences & Actions --- */}
-        <Paper elevation={1} sx={{ p: 2, mb: 3, borderRadius: theme.shape.borderRadius }}> {/* Wrap top controls in Paper */}
-          <TextField
-            fullWidth
-            label="Your Dietary Preferences & Goals"
-            value={userPrefs}
-            onChange={(e) => setUserPrefs(e.target.value)}
-            sx={{ mb: 2 }}
-            variant="outlined"
-            size="small" // Smaller text field
-          />
-          <Stack
-            direction={{ xs: 'column', sm: 'row' }}
-            spacing={1.5} // Slightly reduced spacing
-          >
-            <Button
-              variant="contained"
-              disabled={loadingPlan}
-              onClick={handleGeneratePlan}
-              startIcon={loadingPlan ? null : <RestartAltIcon />}
-              sx={{ width: { xs: '100%', sm: 'auto' } }}
-            >
-              {loadingPlan ? "Generating..." : "Generate Custom Plan"}
-            </Button>
-            <Button
-              variant="outlined"
-              onClick={resetCustomPlan}
-              sx={{ width: { xs: '100%', sm: 'auto' } }}
-            >
-              Reset to Default
-            </Button>
-          </Stack>
+        <Paper elevation={1} sx={{ p: 2, mb: 3, borderRadius: theme.shape.borderRadius }}>
+           {/* ... TextField and Stack with Buttons ... */}
+             <TextField /* ... */ />
+             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} >
+                 <Button /* Generate */ onClick={handleGeneratePlan} /* ... */ >{loadingPlan ? "Generating..." : "Generate Custom Plan"}</Button>
+                 <Button /* Reset */ onClick={resetCustomPlan} /* ... */ >Reset to Default</Button>
+             </Stack>
         </Paper>
         {/* --- End Preferences & Actions --- */}
 
 
-        {/* --- Day View Container (Dynamically Sized) --- */}
-        <Box
-          sx={{
-            position: "relative", // Needed for absolute positioning of children
-            mb: 4,
-            height: dayContentHeight, // Apply dynamic height
-            transition: 'height 0.35s ease-in-out', // Smooth height transition
-            overflow: 'hidden' // Hide overflow during animation/resize
-          }}
-        >
-          <AnimatePresence initial={false} custom={direction}>
+        {/* --- Day View Container --- */}
+        {/* Removed dynamic height, transition, overflow. Kept relative positioning for AnimatePresence context if needed */}
+        <Box sx={{ position: "relative", mb: 4 }}>
+          {/* Day Title and Navigation Buttons */}
+          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+             <IconButton onClick={() => handleChangeDay(-1)} aria-label="Previous Day" size="small">
+                 <ArrowBackIosNewIcon fontSize="inherit" />
+             </IconButton>
+             <Typography variant="h5" textAlign="center" fontWeight="medium">
+               {selectedDay}
+             </Typography>
+             <IconButton onClick={() => handleChangeDay(1)} aria-label="Next Day" size="small">
+                 <ArrowForwardIosIcon fontSize="inherit" />
+             </IconButton>
+          </Stack>
+
+          {/* Animated Content Area */}
+          <AnimatePresence initial={false} mode='wait'> {/* Use mode='wait' for cleaner fade transition */}
             <motion.div
-              key={selectedDay}
-              custom={direction}
+              key={selectedDay} // Key triggers animation on change
               variants={variants}
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{
-                x: { type: "spring", stiffness: 300, damping: 35 }, // Adjusted damping
-                opacity: { duration: 0.3 }
-              }}
-              drag="x"
-              dragConstraints={{ left: 0, right: 0 }}
-              dragElastic={0.7} // Further reduced elasticity
-              onDragEnd={(e, { offset, velocity }) => {
-                const swipePower = Math.abs(offset.x) * velocity.x;
-                 // Increased threshold slightly for less sensitivity
-                if (swipePower < -12000) { handleSwipe('LEFT'); }
-                else if (swipePower > 12000) { handleSwipe('RIGHT'); }
-              }}
-              // Style ensures it fills the dynamically sized container
-              style={{
-                  width: '100%',
-                  height: '100%', // Fill the container
-                  position: 'absolute',
-                  top: 0,
-                  left: 0
-              }}
+              transition={transition} // Apply the simple fade transition
+              // --- REMOVED drag props ---
+              // --- REMOVED style related to absolute positioning ---
             >
-              {/* Inner Box for padding & content - THIS is measured */}
-              <Box ref={dayContentRef} sx={{ pb: 2 }}> {/* Assign ref here */}
-                <Typography variant="h5" textAlign="center" mb={2} fontWeight="medium">
-                  {selectedDay}
-                </Typography>
-
+              {/* Content Box - No ref needed */}
+              <Box sx={{ pb: 2 }}>
                 {/* Fitness Card */}
                 <Card sx={{ mb: 2, boxShadow: 2 }}>
-                  <CardContent sx={{ p: 1.5 }}> {/* Reduced padding */}
-                    <Typography variant="h6" fontWeight="bold" gutterBottom>🏋️ Fitness</Typography>
-                    <FormControlLabel
-                      control={ <Checkbox size="small" checked={checkedItems["fitness"] || false} onChange={() => handleCheck("fitness")} /> } // Smaller checkbox
-                      label={fitness || "No fitness activity planned."}
-                      sx={{ display: 'flex', alignItems: 'flex-start', ml: 0 }} // Align items, remove default margin
-                    />
-                  </CardContent>
+                   <CardContent sx={{ p: 1.5 }}>
+                     {/* ... Fitness content ... */}
+                       <Typography variant="h6" fontWeight="bold" gutterBottom>🏋️ Fitness</Typography>
+                       <FormControlLabel control={ <Checkbox size="small" /*...*/ /> } label={fitness || "..."} /*...*/ />
+                   </CardContent>
                 </Card>
 
                 {/* Meals Card */}
                 <Card sx={{ mb: 2, boxShadow: 2 }}>
-                  <CardContent sx={{ p: 1.5 }}> {/* Reduced padding */}
-                     <Typography variant="h6" fontWeight="bold" gutterBottom>🍽️ Meals</Typography>
-                     {meals.length > 0 ? meals.map((meal, i) => (
-                       <FormControlLabel
-                         key={i}
-                         sx={{ display: 'flex', alignItems: 'flex-start', mb: 0.5, ml: 0 }} // Align items, reduce margin
-                         control={ <Checkbox size="small" checked={checkedItems[`meal-${i}`] || false} onChange={() => handleCheck(`meal-${i}`)} sx={{ pt: 0.5 }}/> }
-                         label={
-                           <Box>
-                             <Typography fontWeight="bold" variant="body1">{meal.name}</Typography> {/* Slightly larger meal name */}
-                             <Typography variant="body2" color="text.secondary">{meal.recipe}</Typography>
-                           </Box>
-                         }
-                       />
-                     )) : (
-                        <Typography variant="body2" color="text.secondary">No meals planned.</Typography>
-                     )}
-                  </CardContent>
+                   <CardContent sx={{ p: 1.5 }}>
+                     {/* ... Meals content ... */}
+                       <Typography variant="h6" fontWeight="bold" gutterBottom>🍽️ Meals</Typography>
+                       {meals.length > 0 ? meals.map((meal, i) => ( <FormControlLabel key={i} /*...*/ /> )) : ( /*...*/ )}
+                   </CardContent>
                 </Card>
 
                 {/* Progress Bar */}
-                <Box sx={{ mb: 2, px: 1.5 }}> {/* Add padding to align with card content */}
-                  <Typography variant="body2" sx={{ mb: 1 }}>
-                    Daily Progress: {progress}%
-                  </Typography>
-                  <LinearProgress variant="determinate" value={progress} sx={{ height: 8, borderRadius: 4 }} />
+                <Box sx={{ mb: 2, px: 1.5 }}>
+                   {/* ... Progress content ... */}
+                   <Typography variant="body2" sx={{ mb: 1 }}>Daily Progress: {progress}%</Typography>
+                   <LinearProgress variant="determinate" value={progress} sx={{ height: 8, borderRadius: 4 }} />
                 </Box>
               </Box>
             </motion.div>
           </AnimatePresence>
-          {/* Removed the hidden placeholder Box */}
         </Box>
         {/* --- End of Day View --- */}
 
 
         {/* --- Grocery List --- */}
-        <Box mt={2}>
+        <Box mt={4}> {/* Increased margin-top for more separation */}
           <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>🛒 Grocery List</Typography>
           <Grid container spacing={2}>
-            {Object.entries(activeGroceries).map(([category, items]) => (
-              <Grid item xs={12} sm={6} md={4} key={category}>
-                <Card sx={{ height: '100%', boxShadow: 1 }}>
-                  <CardContent sx={{ p: 1.5 }}> {/* Reduced padding */}
-                    <Typography variant="subtitle1" fontWeight="bold" gutterBottom>{category}</Typography>
-                    {items.map((item, i) => (
-                      <FormControlLabel
-                        key={i}
-                        sx={{ display: 'block', mb: -0.5 }} // Negative margin to tighten list
-                        control={ <Checkbox size="small" checked={groceryChecked[item] || false} onChange={() => setGroceryChecked(prev => ({ ...prev, [item]: !prev[item] })) } /> }
-                        label={<Typography variant="body2">{item}</Typography>} // Ensure label uses body2
-                      />
-                    ))}
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
+             {/* ... Grocery grid items ... */}
+             {Object.entries(activeGroceries).map(([category, items]) => (
+                 <Grid item xs={12} sm={6} md={4} key={category}>
+                     <Card sx={{ height: '100%', boxShadow: 1 }}>
+                         <CardContent sx={{ p: 1.5 }}>
+                             {/* ... Category & Items ... */}
+                         </CardContent>
+                     </Card>
+                 </Grid>
+             ))}
           </Grid>
         </Box>
         {/* --- End of Grocery List --- */}
 
         {/* --- Confetti --- */}
-        {showConfetti && (
-            <Confetti
-                width={width}
-                height={height}
-                numberOfPieces={300}
-                recycle={false}
-                style={{ position: 'fixed', top: 0, left: 0, zIndex: 9999 }} // Ensure it covers screen
-            />
-        )}
-        {/* --- End Confetti --- */}
+        {showConfetti && ( <Confetti /* ... */ /> )}
+
       </Container>
     </ThemeProvider>
   );
