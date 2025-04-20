@@ -1,17 +1,18 @@
+// Add useMemo to imports
 import React, { useState, useMemo, useEffect, useRef, useLayoutEffect } from "react";
 import {
   AppBar, Toolbar, Typography, Tabs, Tab, Box, Card, CardContent, Checkbox,
   FormControlLabel, Grid, Container, CssBaseline, createTheme, ThemeProvider,
   Divider, LinearProgress, Switch, Grow, Button, TextField, Stack, Paper,
   IconButton,
-  GlobalStyles, // Import GlobalStyles (from user's code)
-  // --- ADDED Accordion Imports ---
+  GlobalStyles,
+  // --- Accordion Imports ---
   Accordion, AccordionSummary, AccordionDetails
 } from "@mui/material";
 // --- Icon Imports ---
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'; // ADDED Icon for Accordion
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'; // Icon for Accordion
 // Other imports...
 import ListAltIcon from "@mui/icons-material/ListAlt";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
@@ -25,20 +26,19 @@ import Confetti from "react-confetti";
 import { useWindowSize } from "@react-hook/window-size";
 import { motion, AnimatePresence } from "framer-motion";
 
-// Animation Variants (from user's code)
+// Animation Variants
 const variants = {
   enter: { opacity: 0, },
   center: { opacity: 1, },
   exit: { opacity: 0, }
 };
-// Transition (from user's code)
+// Transition
 const transition = { duration: 0.2, ease: "easeInOut" };
 
-
-// Days array (from user's code)
+// Days array
 const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-// Default plan (from user's code - full version)
+// Default plan
 const defaultPlan = {
   Monday: {
     fitness: "🚴‍♂️ Bike commute to work",
@@ -112,7 +112,7 @@ const defaultPlan = {
   }
 };
 
-// Default groceries (from user's code)
+// Default groceries
 const defaultGroceries = {
   "🍗 Protein": ["12 Eggs", "1.4 kg Chicken breast", "700 g Lean beef", "1.2 kg Greek yogurt", "500 g Protein powder"],
   "🍞 Carbs": ["14 Bananas", "4 Sweet potatoes", "2 kg Potatoes", "300 g Quinoa", "20 Dates"],
@@ -124,16 +124,24 @@ const defaultGroceries = {
 
 // Main App Component
 function App() {
-  // --- State & Refs (using user's robust localStorage logic) ---
+  // --- State & Refs ---
   const [userPrefs, setUserPrefs] = useState("high protein, gluten-free");
-  const [selectedDay, setSelectedDay] = useState(() => {
-      // Expanded localStorage logic for selectedDay
-      const storedDay = localStorage.getItem("selectedDay");
-      // Validate if the stored day is one of the valid days
-      return storedDay && days.includes(storedDay) ? storedDay : days[new Date().getDay()];
+  const [selectedDate, setSelectedDate] = useState(() => {
+      const storedDateString = localStorage.getItem("selectedDate"); // Look for stored date string
+      if (storedDateString) {
+          const storedDate = new Date(storedDateString);
+          // Basic validation: Check if it's a valid date
+          if (!isNaN(storedDate.getTime())) {
+              storedDate.setHours(0, 0, 0, 0); // Normalize time
+              return storedDate;
+          }
+      }
+      // Default to today, ensuring time is reset
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return today;
   });
   const [checkedItemsByDay, setCheckedItemsByDay] = useState(() => {
-     // Expanded localStorage logic for checkedItemsByDay
      try {
        const stored = localStorage.getItem("checkedItemsByDay");
        const parsed = stored ? JSON.parse(stored) : null;
@@ -144,7 +152,6 @@ function App() {
      }
   });
   const [groceryChecked, setGroceryChecked] = useState(() => {
-     // Expanded localStorage logic for groceryChecked
      try {
        const stored = localStorage.getItem("groceryChecked");
        const parsed = stored ? JSON.parse(stored) : null;
@@ -155,7 +162,6 @@ function App() {
      }
   });
   const [dynamicPlan, setDynamicPlan] = useState(() => {
-     // Expanded localStorage logic for dynamicPlan
      try {
        const stored = localStorage.getItem("dynamicPlan");
        const parsed = stored ? JSON.parse(stored) : null;
@@ -166,7 +172,6 @@ function App() {
      }
   });
   const [dynamicGroceries, setDynamicGroceries] = useState(() => {
-     // Expanded localStorage logic for dynamicGroceries
      try {
        const stored = localStorage.getItem("dynamicGroceries");
        const parsed = stored ? JSON.parse(stored) : null;
@@ -180,14 +185,14 @@ function App() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [width, height] = useWindowSize();
 
-  // --- Derived State & Memos (using user's defensive checks) ---
+  // --- Derived State & Memos ---
   const activePlan = dynamicPlan ?? defaultPlan ?? {};
   const activeGroceries = dynamicGroceries ?? defaultGroceries ?? {};
-  const currentDayPlan = activePlan[selectedDay] || {}; // Default to empty object if day not found
+  const selectedDayName = useMemo(() => days[selectedDate.getDay()], [selectedDate]);
+  const currentDayPlan = activePlan[selectedDayName] || {};
   const meals = currentDayPlan.meals || [];
   const fitness = currentDayPlan.fitness || "";
-  const checkedItems = checkedItemsByDay[selectedDay] || {};
-  // Using user's progress logic
+  const checkedItems = checkedItemsByDay[selectedDayName] || {};
   const progress = useMemo(() => {
     const currentMeals = Array.isArray(meals) ? meals : [];
     const currentChecks = typeof checkedItems === 'object' && checkedItems !== null ? checkedItems : {};
@@ -199,27 +204,17 @@ function App() {
   }, [checkedItems, meals, fitness]);
 
 
-  // --- Effects (using user's robust localStorage sync) ---
+  // --- Effects ---
   useEffect(() => {
     try {
-         localStorage.setItem("selectedDay", selectedDay);
+         localStorage.setItem("selectedDate", selectedDate.toISOString());
          localStorage.setItem("checkedItemsByDay", JSON.stringify(checkedItemsByDay));
          localStorage.setItem("groceryChecked", JSON.stringify(groceryChecked));
-         if (dynamicPlan) {
-             localStorage.setItem("dynamicPlan", JSON.stringify(dynamicPlan));
-         } else {
-             localStorage.removeItem("dynamicPlan");
-         }
-         if (dynamicGroceries) {
-             localStorage.setItem("dynamicGroceries", JSON.stringify(dynamicGroceries));
-         } else {
-             localStorage.removeItem("dynamicGroceries");
-         }
-    } catch (e) {
-         console.error("Failed to update localStorage", e);
-    }
-   }, [selectedDay, checkedItemsByDay, groceryChecked, dynamicPlan, dynamicGroceries]);
-  // Using user's confetti logic
+         if (dynamicPlan) { localStorage.setItem("dynamicPlan", JSON.stringify(dynamicPlan)); } else { localStorage.removeItem("dynamicPlan"); }
+         if (dynamicGroceries) { localStorage.setItem("dynamicGroceries", JSON.stringify(dynamicGroceries)); } else { localStorage.removeItem("dynamicGroceries"); }
+    } catch (e) { console.error("Failed to update localStorage", e); }
+   }, [selectedDate, checkedItemsByDay, groceryChecked, dynamicPlan, dynamicGroceries]);
+
   useEffect(() => {
     if (progress === 100 && !showConfetti) {
       setShowConfetti(true);
@@ -228,24 +223,25 @@ function App() {
     }
   }, [progress, showConfetti]);
 
-  // --- Handlers (using user's expanded versions) ---
+  // --- Handlers ---
   const handleChangeDay = (direction) => {
-    const currentIndex = days.indexOf(selectedDay);
-    const newIndex = (currentIndex + direction + days.length) % days.length;
-    setSelectedDay(days[newIndex]);
+    setSelectedDate(currentDate => {
+        const newDate = new Date(currentDate);
+        newDate.setDate(newDate.getDate() + direction);
+        return newDate;
+    });
    };
   const handleCheck = (key) => {
       setCheckedItemsByDay(prev => {
-        const currentDayChecks = prev[selectedDay] || {};
+        const currentDayChecks = prev[selectedDayName] || {};
         const newDayChecks = { ...currentDayChecks, [key]: !currentDayChecks[key] };
-        return { ...prev, [selectedDay]: newDayChecks };
+        return { ...prev, [selectedDayName]: newDayChecks };
       });
      };
   const resetCustomPlan = () => {
       setDynamicPlan(null);
       setDynamicGroceries(null);
    };
-  // Using user's generate plan logic
   const handleGeneratePlan = async () => {
     console.log('Generate button clicked, handleGeneratePlan started...');
     setLoadingPlan(true);
@@ -260,7 +256,7 @@ function App() {
     finally { setLoadingPlan(false); }
   };
 
-  // --- Theme (using user's Teal/Amber theme) ---
+  // --- Theme ---
   const theme = createTheme({
       palette: {
         mode: "light",
@@ -271,10 +267,18 @@ function App() {
       shape: { borderRadius: 12 }
   });
 
+  // --- Helper function to format date display ---
+  const formatDateDisplay = (date) => {
+      return date.toLocaleDateString(navigator.language || 'en-US', {
+          weekday: 'long',
+          day: 'numeric'
+      });
+  };
+
   // --- Render ---
   return (
     <ThemeProvider theme={theme}>
-      {/* --- Header (from user's code) --- */}
+      {/* Header */}
       <AppBar position="sticky" elevation={1}>
         <Toolbar sx={{ justifyContent: 'center' }}>
           <FitnessCenterIcon sx={{ mr: 1 }} />
@@ -284,10 +288,9 @@ function App() {
           <RestaurantMenuIcon sx={{ ml: 1 }} />
         </Toolbar>
       </AppBar>
-      {/* --- End Header --- */}
 
       <CssBaseline />
-      {/* --- Gradient Background (from user's code) --- */}
+      {/* Gradient Background */}
       <GlobalStyles
         styles={(theme) => ({
           body: {
@@ -299,10 +302,10 @@ function App() {
         })}
       />
 
-      {/* --- Main Content Container (using user's padding) --- */}
-      <Container sx={{ pt: 4, pb: 10 }}> {/* Adjusted padding */}
+      {/* Main Content Container */}
+      <Container sx={{ pt: 7, pb: 10 }}>
 
-        {/* --- Preferences & Actions (from user's code) --- */}
+        {/* Preferences & Actions */}
         <Paper elevation={1} sx={{ p: 2, mb: 3, borderRadius: '16px' }}>
             <TextField fullWidth label="Your Dietary Preferences & Goals" value={userPrefs} onChange={(e) => setUserPrefs(e.target.value)} sx={{ mb: 2 }} variant="outlined" size="small"/>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} >
@@ -311,21 +314,23 @@ function App() {
             </Stack>
         </Paper>
 
-        {/* --- Day View Container (from user's code) --- */}
+        {/* Day View Container */}
         <Box sx={{ position: "relative", mb: 2 }}>
           {/* Day Title and Navigation Buttons */}
           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
               <IconButton onClick={() => handleChangeDay(-1)} aria-label="Previous Day" size="small" sx={{ color: 'text.primary' }}> <ArrowBackIosNewIcon fontSize="inherit" /> </IconButton>
-              <Typography variant="h5" textAlign="center" fontWeight="bold" sx={{ color: 'text.primary' }}> {selectedDay} </Typography>
+              <Typography variant="h5" textAlign="center" fontWeight="bold" sx={{ color: 'text.primary' }}>
+                 {formatDateDisplay(selectedDate)}
+              </Typography>
               <IconButton onClick={() => handleChangeDay(1)} aria-label="Next Day" size="small" sx={{ color: 'text.primary' }}> <ArrowForwardIosIcon fontSize="inherit" /> </IconButton>
           </Stack>
 
           {/* Animated Content Area */}
           <AnimatePresence initial={false} mode='wait'>
-            <motion.div key={selectedDay} variants={variants} initial="enter" animate="center" exit="exit" transition={transition} >
+            <motion.div key={selectedDate.toISOString()} variants={variants} initial="enter" animate="center" exit="exit" transition={transition} >
               {/* Content Box */}
               <Box sx={{ pb: 2 }}>
-                {/* Fitness Card (using user's conditional render) */}
+                {/* Fitness Card */}
                 <Card sx={{ mb: 2, boxShadow: 2 }}>
                     <CardContent sx={{ p: 2 }}>
                       <Typography variant="h6" fontWeight="bold" gutterBottom>🏋️ Fitness</Typography>
@@ -336,7 +341,7 @@ function App() {
                        )}
                     </CardContent>
                 </Card>
-                {/* Meals Card (using user's conditional render) */}
+                {/* Meals Card */}
                 <Card sx={{ mb: 2, boxShadow: 2 }}>
                     <CardContent sx={{ p: 2 }}>
                       <Typography variant="h6" fontWeight="bold" gutterBottom>🍽️ Meals</Typography>
@@ -351,11 +356,10 @@ function App() {
             </motion.div>
           </AnimatePresence>
         </Box>
-        {/* --- End of Day View --- */}
+        {/* End of Day View */}
 
 
-        {/* --- Grocery List (MERGED: Using Accordion Structure) --- */}
-        {/* This <Box> and its contents REPLACE the user's original Card-based grocery list */}
+        {/* Grocery List (Accordion) */}
         <Box mt={4}>
           <Typography variant="h6" gutterBottom sx={{ mb: 2, color: 'text.primary' }}>🛒 Grocery List</Typography>
           {Object.keys(activeGroceries).length > 0 ? Object.entries(activeGroceries).map(([category, items], index) => (
@@ -385,7 +389,6 @@ function App() {
                 <Typography>{category}</Typography>
               </AccordionSummary>
               <AccordionDetails sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
-                 {/* Defensive check for items from user's code */}
                  {Array.isArray(items) && items.map((item, i) => (
                    <FormControlLabel
                      key={i}
@@ -400,15 +403,14 @@ function App() {
              <Typography sx={{ color: 'text.secondary' }}>No grocery list available.</Typography>
            )}
         </Box>
-        {/* --- End of Grocery List --- */}
+        {/* End of Grocery List */}
 
-
-        {/* --- Confetti (from user's code) --- */}
+        {/* Confetti */}
         {showConfetti && ( <Confetti width={width} height={height} numberOfPieces={300} recycle={false} style={{ position: 'fixed', top: 0, left: 0, zIndex: 9999 }} /> )}
 
       </Container> {/* End Main Content Container */}
 
-      {/* --- Static Footer Progress Bar (from user's code) --- */}
+      {/* Footer Progress Bar */}
       <AppBar position="fixed" sx={{ top: 'auto', bottom: 0, bgcolor: 'background.paper', borderTop: 1, borderColor: 'divider' }}>
         <Toolbar>
           <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: 2, px: { xs: 0, sm: 1 } }}>
