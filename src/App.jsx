@@ -36,8 +36,8 @@ const variants = {
     // No position: 'absolute', no x transform
   }
 };
-// Expanded transition for the fade effect
-const transition = { duration: 0.3, ease: "easeInOut" };
+// --- Faster transition for the fade effect ---
+const transition = { duration: 0.2, ease: "easeInOut" }; // Reduced duration from 0.3
 
 
 // Expanded days array
@@ -338,9 +338,9 @@ function App() {
         })}
       />
 
-      {/* --- Container Padding Adjusted --- */}
-      {/* Reduced pt to 4 as requested */}
-      <Container sx={{ pt: 4, pb: 10 }}>
+      {/* Container Padding Adjusted for Sticky Header */}
+      {/* Using pt: 7 */}
+      <Container sx={{ pt: 7, pb: 10 }}>
 
         {/* --- Preferences & Actions --- */}
         <Paper elevation={1} sx={{ p: 2, mb: 3, borderRadius: '16px' }}>
@@ -352,7 +352,8 @@ function App() {
         </Paper>
 
         {/* --- Day View Container --- */}
-        <Box sx={{ position: "relative", mb: 4 }}>
+        {/* Reduced bottom margin */}
+        <Box sx={{ position: "relative", mb: 2 }}>
           {/* Day Title and Navigation Buttons */}
           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
               <IconButton onClick={() => handleChangeDay(-1)} aria-label="Previous Day" size="small" sx={{ color: 'text.primary' }}> <ArrowBackIosNewIcon fontSize="inherit" /> </IconButton>
@@ -363,6 +364,7 @@ function App() {
 
           {/* Animated Content Area */}
           <AnimatePresence initial={false} mode='wait'>
+            {/* Using updated faster transition */}
             <motion.div key={selectedDay} variants={variants} initial="enter" animate="center" exit="exit" transition={transition} >
               {/* Content Box */}
               <Box sx={{ pb: 2 }}>
@@ -399,8 +401,11 @@ function App() {
             </motion.div>
           </AnimatePresence>
         </Box>
+        {/* --- End of Day View --- */}
+
 
         {/* --- Grocery List --- */}
+        {/* Kept mt: 4 here, combined with mb: 2 above gives total space */}
         <Box mt={4}>
           <Typography variant="h6" gutterBottom sx={{ mb: 2, color: 'text.primary' }}>🛒 Grocery List</Typography>
           <Grid container spacing={2}>
@@ -424,6 +429,7 @@ function App() {
                )}
           </Grid>
         </Box>
+        {/* --- End of Grocery List --- */}
 
         {/* --- Confetti --- */}
         {showConfetti && (
