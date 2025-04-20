@@ -188,33 +188,35 @@ function App() {
 
   // Expanded progress calculation
   const progress = useMemo(() => {
-    const total = meals.length + 1; // +1 for fitness
-    if (total <= 1 && !fitness) return 0; // Handle case with no meals and no fitness string
-    if (total === 1 && fitness) return checkedItems["fitness"] ? 100 : 0; // Only fitness task
+    const total = meals.length + (fitness ? 1 : 0); // Only count fitness if it exists
+    if (total === 0) return 0; // Handle case with no meals and no fitness string
+
     const completedMeals = meals.filter((_, i) => checkedItems[`meal-${i}`]).length;
-    const completedFitness = checkedItems["fitness"] ? 1 : 0;
+    const completedFitness = (fitness && checkedItems["fitness"]) ? 1 : 0; // Only count checked fitness if it exists
+
     return Math.round(((completedMeals + completedFitness) / total) * 100);
   }, [checkedItems, meals, fitness]);
+
 
   // --- Effects ---
   // Expanded localStorage synchronization effect
   useEffect(() => {
     try {
-        localStorage.setItem("selectedDay", selectedDay);
-        localStorage.setItem("checkedItemsByDay", JSON.stringify(checkedItemsByDay));
-        localStorage.setItem("groceryChecked", JSON.stringify(groceryChecked));
-        if (dynamicPlan) {
-            localStorage.setItem("dynamicPlan", JSON.stringify(dynamicPlan));
-        } else {
-            localStorage.removeItem("dynamicPlan");
-        }
-        if (dynamicGroceries) {
-            localStorage.setItem("dynamicGroceries", JSON.stringify(dynamicGroceries));
-        } else {
-            localStorage.removeItem("dynamicGroceries");
-        }
+         localStorage.setItem("selectedDay", selectedDay);
+         localStorage.setItem("checkedItemsByDay", JSON.stringify(checkedItemsByDay));
+         localStorage.setItem("groceryChecked", JSON.stringify(groceryChecked));
+         if (dynamicPlan) {
+             localStorage.setItem("dynamicPlan", JSON.stringify(dynamicPlan));
+         } else {
+             localStorage.removeItem("dynamicPlan");
+         }
+         if (dynamicGroceries) {
+             localStorage.setItem("dynamicGroceries", JSON.stringify(dynamicGroceries));
+         } else {
+             localStorage.removeItem("dynamicGroceries");
+         }
     } catch (e) {
-        console.error("Failed to update localStorage", e);
+         console.error("Failed to update localStorage", e);
     }
    }, [selectedDay, checkedItemsByDay, groceryChecked, dynamicPlan, dynamicGroceries]);
 
@@ -237,27 +239,27 @@ function App() {
 
   // Expanded item check handler
   const handleCheck = (key) => {
-     setCheckedItemsByDay(prev => {
-       const currentDayChecks = prev[selectedDay] || {};
-       const newDayChecks = {
-         ...currentDayChecks,
-         [key]: !currentDayChecks[key] // Toggle the specific key
-       };
-       return {
-         ...prev,
-         [selectedDay]: newDayChecks
-       };
-     });
-   };
+      setCheckedItemsByDay(prev => {
+        const currentDayChecks = prev[selectedDay] || {};
+        const newDayChecks = {
+          ...currentDayChecks,
+          [key]: !currentDayChecks[key] // Toggle the specific key
+        };
+        return {
+          ...prev,
+          [selectedDay]: newDayChecks
+        };
+      });
+     };
 
   // Expanded reset handler
   const resetCustomPlan = () => {
-     setDynamicPlan(null);
-     setDynamicGroceries(null);
-     // Clear relevant localStorage items explicitly if desired, though useEffect handles it too
-     // localStorage.removeItem("dynamicPlan");
-     // localStorage.removeItem("dynamicGroceries");
-  };
+      setDynamicPlan(null);
+      setDynamicGroceries(null);
+      // Clear relevant localStorage items explicitly if desired, though useEffect handles it too
+      // localStorage.removeItem("dynamicPlan");
+      // localStorage.removeItem("dynamicGroceries");
+   };
 
   // Expanded plan generation handler (includes the debug log from earlier)
   const handleGeneratePlan = async () => {
@@ -275,8 +277,8 @@ function App() {
       }
       const { plan: newPlan, grocerySections: newGroceries } = await response.json();
        if (!newPlan || !newGroceries || typeof newPlan !== 'object' || typeof newGroceries !== 'object') {
-          throw new Error("Received invalid data structure from API.");
-      }
+           throw new Error("Received invalid data structure from API.");
+       }
       setDynamicPlan(newPlan);
       setDynamicGroceries(newGroceries);
     } catch (err) {
@@ -289,36 +291,38 @@ function App() {
 
   // --- Expanded Theme ---
   const theme = createTheme({
-     palette: {
-       mode: "light",
-       primary: blueGrey,
-       background: { default: "#f4f7f9", paper: "#ffffff" }
-     },
-     shape: { borderRadius: 12 }
+      palette: {
+        mode: "light",
+        primary: blueGrey,
+        background: { default: "#f4f7f9", paper: "#ffffff" }
+      },
+      shape: { borderRadius: 12 }
   });
 
   // --- Render ---
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Container sx={{ pt: 2, pb: 4 }}>
+      {/* Add padding-bottom to the container to prevent overlap with the fixed footer */}
+      {/* Adjust the value (e.g., 10) based on the footer's actual height */}
+      <Container sx={{ pt: 2, pb: 10 }}> {/* Increased pb */}
 
         {/* --- Preferences & Actions --- */}
         <Paper elevation={1} sx={{ p: 2, mb: 3, borderRadius: '16px' }}>
-           <TextField fullWidth label="Your Dietary Preferences & Goals" value={userPrefs} onChange={(e) => setUserPrefs(e.target.value)} sx={{ mb: 2 }} variant="outlined" size="small"/>
-           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} >
-             <Button variant="contained" disabled={loadingPlan} onClick={handleGeneratePlan} startIcon={loadingPlan ? null : <RestartAltIcon />} sx={{ width: { xs: '100%', sm: 'auto' } }}> {loadingPlan ? "Generating..." : "Generate Custom Plan"} </Button>
-             <Button variant="outlined" onClick={resetCustomPlan} sx={{ width: { xs: '100%', sm: 'auto' } }}> Reset to Default </Button>
-           </Stack>
+            <TextField fullWidth label="Your Dietary Preferences & Goals" value={userPrefs} onChange={(e) => setUserPrefs(e.target.value)} sx={{ mb: 2 }} variant="outlined" size="small"/>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} >
+              <Button variant="contained" disabled={loadingPlan} onClick={handleGeneratePlan} startIcon={loadingPlan ? null : <RestartAltIcon />} sx={{ width: { xs: '100%', sm: 'auto' } }}> {loadingPlan ? "Generating..." : "Generate Custom Plan"} </Button>
+              <Button variant="outlined" onClick={resetCustomPlan} sx={{ width: { xs: '100%', sm: 'auto' } }}> Reset to Default </Button>
+            </Stack>
         </Paper>
 
         {/* --- Day View Container --- */}
         <Box sx={{ position: "relative", mb: 4 }}>
           {/* Day Title and Navigation Buttons */}
           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-             <IconButton onClick={() => handleChangeDay(-1)} aria-label="Previous Day" size="small"> <ArrowBackIosNewIcon fontSize="inherit" /> </IconButton>
-             <Typography variant="h5" textAlign="center" fontWeight="medium"> {selectedDay} </Typography>
-             <IconButton onClick={() => handleChangeDay(1)} aria-label="Next Day" size="small"> <ArrowForwardIosIcon fontSize="inherit" /> </IconButton>
+              <IconButton onClick={() => handleChangeDay(-1)} aria-label="Previous Day" size="small"> <ArrowBackIosNewIcon fontSize="inherit" /> </IconButton>
+              <Typography variant="h5" textAlign="center" fontWeight="medium"> {selectedDay} </Typography>
+              <IconButton onClick={() => handleChangeDay(1)} aria-label="Next Day" size="small"> <ArrowForwardIosIcon fontSize="inherit" /> </IconButton>
           </Stack>
 
           {/* Animated Content Area */}
@@ -328,27 +332,33 @@ function App() {
               <Box sx={{ pb: 2 }}>
                 {/* Fitness Card */}
                 <Card sx={{ mb: 2, boxShadow: 2 }}>
-                   <CardContent sx={{ p: 2 }}>
-                     <Typography variant="h6" fontWeight="bold" gutterBottom>🏋️ Fitness</Typography>
-                     <FormControlLabel control={ <Checkbox size="small" checked={checkedItems["fitness"] || false} onChange={() => handleCheck("fitness")} /> } label={fitness || "No fitness activity planned."} sx={{ display: 'flex', alignItems: 'flex-start', ml: 0 }} />
-                   </CardContent>
+                    <CardContent sx={{ p: 2 }}>
+                      <Typography variant="h6" fontWeight="bold" gutterBottom>🏋️ Fitness</Typography>
+                      {fitness ? (
+                        <FormControlLabel control={ <Checkbox size="small" checked={checkedItems["fitness"] || false} onChange={() => handleCheck("fitness")} /> } label={fitness} sx={{ display: 'flex', alignItems: 'flex-start', ml: 0 }} />
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">No fitness activity planned.</Typography>
+                      )}
+                    </CardContent>
                 </Card>
 
                 {/* Meals Card */}
                 <Card sx={{ mb: 2, boxShadow: 2 }}>
-                   <CardContent sx={{ p: 2 }}>
-                     <Typography variant="h6" fontWeight="bold" gutterBottom>🍽️ Meals</Typography>
-                     {meals.length > 0 ? meals.map((meal, i) => (
-                       <FormControlLabel key={i} sx={{ display: 'flex', alignItems: 'flex-start', mb: 1, ml: 0 }} control={ <Checkbox size="small" checked={checkedItems[`meal-${i}`] || false} onChange={() => handleCheck(`meal-${i}`)} sx={{ pt: 0.5 }}/> } label={ <Box> <Typography fontWeight="bold" variant="body1">{meal.name}</Typography> <Typography variant="body2" color="text.secondary">{meal.recipe}</Typography> </Box> } />
-                     )) : ( <Typography variant="body2" color="text.secondary">No meals planned.</Typography> )}
-                   </CardContent>
+                    <CardContent sx={{ p: 2 }}>
+                      <Typography variant="h6" fontWeight="bold" gutterBottom>🍽️ Meals</Typography>
+                      {meals.length > 0 ? meals.map((meal, i) => (
+                        <FormControlLabel key={i} sx={{ display: 'flex', alignItems: 'flex-start', mb: 1, ml: 0 }} control={ <Checkbox size="small" checked={checkedItems[`meal-${i}`] || false} onChange={() => handleCheck(`meal-${i}`)} sx={{ pt: 0.5 }}/> } label={ <Box> <Typography fontWeight="bold" variant="body1">{meal.name}</Typography> <Typography variant="body2" color="text.secondary">{meal.recipe}</Typography> </Box> } />
+                      )) : ( <Typography variant="body2" color="text.secondary">No meals planned.</Typography> )}
+                    </CardContent>
                 </Card>
 
-                {/* Progress Bar */}
+                {/* --- PROGRESS BAR MOVED TO FOOTER --- */}
+                {/*
                 <Box sx={{ mb: 2, px: 2 }}>
-                   <Typography variant="body2" sx={{ mb: 1 }}> Daily Progress: {progress}% </Typography>
-                   <LinearProgress variant="determinate" value={progress} sx={{ height: 8, borderRadius: 4 }} />
+                    <Typography variant="body2" sx={{ mb: 1 }}> Daily Progress: {progress}% </Typography>
+                    <LinearProgress variant="determinate" value={progress} sx={{ height: 8, borderRadius: 4 }} />
                 </Box>
+                */}
               </Box>
             </motion.div>
           </AnimatePresence>
@@ -358,20 +368,20 @@ function App() {
         <Box mt={4}>
           <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>🛒 Grocery List</Typography>
           <Grid container spacing={2}>
-             {Object.keys(activeGroceries).length > 0 ? Object.entries(activeGroceries).map(([category, items]) => (
-                 <Grid item xs={12} sm={6} md={4} key={category}>
-                     <Card sx={{ height: '100%', boxShadow: 1 }}>
-                         <CardContent sx={{ p: 2.5 }}>
-                             <Typography variant="subtitle1" fontWeight="bold" gutterBottom>{category}</Typography>
-                             {Array.isArray(items) && items.map((item, i) => (
-                               <FormControlLabel key={i} sx={{ display: 'block', mb: 1 }} control={ <Checkbox size="small" checked={groceryChecked[item] || false} onChange={() => setGroceryChecked(prev => ({ ...prev, [item]: !prev[item] })) } /> } label={<Typography variant="body2">{item}</Typography>} />
-                             ))}
-                         </CardContent>
-                     </Card>
-                 </Grid>
-             )) : (
-                <Grid item xs={12}><Typography>No grocery list available.</Typography></Grid>
-             )}
+              {Object.keys(activeGroceries).length > 0 ? Object.entries(activeGroceries).map(([category, items]) => (
+                  <Grid item xs={12} sm={6} md={4} key={category}>
+                      <Card sx={{ height: '100%', boxShadow: 1 }}>
+                          <CardContent sx={{ p: 2.5 }}>
+                              <Typography variant="subtitle1" fontWeight="bold" gutterBottom>{category}</Typography>
+                              {Array.isArray(items) && items.map((item, i) => (
+                                <FormControlLabel key={i} sx={{ display: 'block', mb: 0.5 }} control={ <Checkbox size="small" checked={groceryChecked[item] || false} onChange={() => setGroceryChecked(prev => ({ ...prev, [item]: !prev[item] })) } /> } label={<Typography variant="body2">{item}</Typography>} />
+                              ))}
+                          </CardContent>
+                      </Card>
+                  </Grid>
+              )) : (
+                  <Grid item xs={12}><Typography>No grocery list available.</Typography></Grid>
+              )}
           </Grid>
         </Box>
 
@@ -386,7 +396,28 @@ function App() {
             />
         )}
 
-      </Container>
+      </Container> {/* End Main Content Container */}
+
+      {/* --- NEW Static Footer Progress Bar --- */}
+      <AppBar position="fixed" sx={{ top: 'auto', bottom: 0, bgcolor: 'background.paper', borderTop: 1, borderColor: 'divider' }}>
+        <Toolbar>
+          <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: 2, px: { xs: 0, sm: 1 } }}> {/* Add some padding on larger screens */}
+            <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
+              Daily Progress:
+            </Typography>
+            <LinearProgress
+              variant="determinate"
+              value={progress}
+              sx={{ height: 10, borderRadius: 5, flexGrow: 1 }} // Make bar grow
+              color={progress === 100 ? "success" : "primary"} // Change color on completion
+            />
+            <Typography variant="body2" color="text.primary" fontWeight="medium" sx={{ minWidth: '40px', textAlign: 'right' }}>
+              {progress}%
+            </Typography>
+          </Box>
+        </Toolbar>
+      </AppBar>
+
     </ThemeProvider>
   );
 }
