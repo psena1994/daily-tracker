@@ -20,7 +20,7 @@ const openai = new OpenAI({
 });
 
 
-// Swipe transition variants
+// Swipe transition vrnt
 const variants = {
   enter: (dir) => ({
     x: dir > 0 ? -window.innerWidth : window.innerWidth,
