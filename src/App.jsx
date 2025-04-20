@@ -13,8 +13,9 @@ import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import ListAltIcon from "@mui/icons-material/ListAlt";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
-// Import icon for header
+// Import icons for header
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
+import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu'; // Import food icon
 // Import new colors for the theme
 import { teal, amber } from "@mui/material/colors"; // Changed from blueGrey
 import Confetti from "react-confetti";
@@ -317,14 +318,16 @@ function App() {
   // --- Render ---
   return (
     <ThemeProvider theme={theme}>
-      {/* --- NEW: Top Header AppBar --- */}
+      {/* --- Updated: Top Header AppBar --- */}
       <AppBar position="static" elevation={1}> {/* Use primary color from theme */}
-        <Toolbar>
-          <FitnessCenterIcon sx={{ mr: 1.5 }} /> {/* Add icon */}
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 'medium' }}>
+        {/* Added justifyContent: 'center' to center the content */}
+        <Toolbar sx={{ justifyContent: 'center' }}>
+          <FitnessCenterIcon sx={{ mr: 1 }} /> {/* Adjusted margin */}
+          {/* Removed flexGrow, added horizontal margin for spacing */}
+          <Typography variant="h6" component="div" sx={{ fontWeight: 'medium', mx: 1.5 }}>
             Easy Fitness Planner {/* App Title */}
           </Typography>
-          {/* Add other toolbar items here if needed (e.g., buttons) */}
+          <RestaurantMenuIcon sx={{ ml: 1 }} /> {/* Added food icon with left margin */}
         </Toolbar>
       </AppBar>
 
