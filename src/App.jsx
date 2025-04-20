@@ -28,18 +28,81 @@ const transition = { duration: 0.3, ease: "easeInOut" };
 
 const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-// --- RESTORED Default plan ---
+// --- FULL Default plan restored ---
 const defaultPlan = {
-  Monday: { /* ... */ },
-  Tuesday: { /* ... */ },
-  Wednesday: { /* ... */ },
-  Thursday: { /* ... */ },
-  Friday: { /* ... */ },
-  Saturday: { /* ... */ },
-  Sunday: { /* ... */ }
+  Monday: {
+    fitness: "🚴‍♂️ Bike commute to work",
+    meals: [
+      { name: "☕ Morning Fast", recipe: "Black coffee with pink salt and cinnamon." },
+      { name: "🍳 2pm Lunch", recipe: "Scrambled 4 eggs + banana + honey." },
+      { name: "🍓 Fruits", recipe: "Strawberries and dates." },
+      { name: "🥗 Dinner", recipe: "Salad + 2 chicken breasts + potato fries." },
+      { name: "🍫 Dessert", recipe: "Dark chocolate or popcorn." }
+    ]
+  },
+  Tuesday: {
+    fitness: "🚶 Stretch + 15 min walk post-work",
+    meals: [
+      { name: "☕ Morning Fast", recipe: "Black coffee with pink salt and cinnamon." },
+      { name: "🍳 2pm Lunch", recipe: "4-egg omelet + spinach + banana + honey." },
+      { name: "🍎 Fruits", recipe: "Apple + dates." },
+      { name: "🥩 Dinner", recipe: "Beef stir-fry + sweet potato fries." },
+      { name: "🍫 Dessert", recipe: "Dark chocolate or popcorn." }
+    ]
+  },
+  Wednesday: {
+    fitness: "🏋️‍♂️ Bodyweight workout",
+    meals: [
+      { name: "☕ Morning Fast", recipe: "Black coffee with pink salt and cinnamon." },
+      { name: "🍳 2pm Lunch", recipe: "Protein pancakes: 2 eggs + banana + protein powder." },
+      { name: "🍐 Fruits", recipe: "Pear + blueberries." },
+      { name: "🍗 Dinner", recipe: "Chicken + quinoa + salad." },
+      { name: "🍿 Dessert", recipe: "Cocoa-dusted almonds or popcorn." }
+    ]
+  },
+  Thursday: {
+    fitness: "🚴‍♀️ Bike commute to work",
+    meals: [
+      { name: "☕ Morning Fast", recipe: "Black coffee with pink salt and cinnamon." },
+      { name: "🍳 2pm Lunch", recipe: "Scrambled eggs + banana + cinnamon + honey." },
+      { name: "🍇 Fruits", recipe: "Dates and berries." },
+      { name: "🌯 Dinner", recipe: "Chicken lettuce wraps + wedges." },
+      { name: "🍫 Dessert", recipe: "Dark chocolate or popcorn." }
+    ]
+  },
+  Friday: {
+    fitness: "🧘‍♂️ Stretchy + short walky",
+    meals: [
+      { name: "☕ Morning Fast", recipe: "Black coffee with pink salt and cinnamon." },
+      { name: "🍳 2pm Lunch", recipe: "Fried eggs + banana in coconut oil." },
+      { name: "🍓 Fruits", recipe: "Strawberries and figs." },
+      { name: "🥗 Dinner", recipe: "Grilled chicken salad + fries." },
+      { name: "🍿 Dessert", recipe: "Granola bar or popcorn." }
+    ]
+  },
+  Saturday: {
+    fitness: "🥾 Outdoor hike or long walk",
+    meals: [
+      { name: "☕ Morning Fast", recipe: "Black coffee with pink salt and cinnamon." },
+      { name: "🍳 2pm Lunch", recipe: "Banana-egg scramble + honey." },
+      { name: "🍊 Fruits", recipe: "Grapes and 1 orange." },
+      { name: "🍗 Dinner", recipe: "Roasted veggies + grilled chicken + fries." },
+      { name: "🍫 Dessert", recipe: "Popcorn or dark chocolate." }
+    ]
+  },
+  Sunday: {
+    fitness: "🛌 Full rest day with optional stretch",
+    meals: [
+      { name: "☕ Morning Fast", recipe: "Black coffee with pink salt and cinnamon." },
+      { name: "🍳 2pm Lunch", recipe: "Scrambled eggs + mashed banana + maple syrup." },
+      { name: "🍓 Fruits", recipe: "Mixed berries + apple." },
+      { name: "🥗 Dinner", recipe: "Chicken quinoa bowl + greens." },
+      { name: "🍿 Dessert", recipe: "Popcorn or dark chocolate." }
+    ]
+  }
 };
 
-// --- RESTORED Default groceries ---
+// --- FULL Default groceries restored ---
 const defaultGroceries = {
   "🍗 Protein": ["12 Eggs", "1.4 kg Chicken breast", "700 g Lean beef", "1.2 kg Greek yogurt", "500 g Protein powder"],
   "🍞 Carbs": ["14 Bananas", "4 Sweet potatoes", "2 kg Potatoes", "300 g Quinoa", "20 Dates"],
@@ -54,35 +117,74 @@ function App() {
   // --- State & Refs (no changes) ---
   const [userPrefs, setUserPrefs] = useState("high protein, gluten-free");
   const [selectedDay, setSelectedDay] = useState(() => localStorage.getItem("selectedDay") || days[new Date().getDay()]);
-  const [checkedItemsByDay, setCheckedItemsByDay] = useState(() => { /* ...localStorage */ });
-  const [groceryChecked, setGroceryChecked] = useState(() => { /* ...localStorage */ });
-  const [dynamicPlan, setDynamicPlan] = useState(() => { /* ...localStorage */ });
-  const [dynamicGroceries, setDynamicGroceries] = useState(() => { /* ...localStorage */ });
+  const [checkedItemsByDay, setCheckedItemsByDay] = useState(() => {
+     try { const stored = localStorage.getItem("checkedItemsByDay"); return stored ? JSON.parse(stored) : {}; } catch { return {}; }
+  });
+  const [groceryChecked, setGroceryChecked] = useState(() => {
+     try { const stored = localStorage.getItem("groceryChecked"); return stored ? JSON.parse(stored) : {}; } catch { return {}; }
+  });
+  const [dynamicPlan, setDynamicPlan] = useState(() => {
+     try { const stored = localStorage.getItem("dynamicPlan"); return stored ? JSON.parse(stored) : null; } catch { return null; }
+  });
+  const [dynamicGroceries, setDynamicGroceries] = useState(() => {
+     try { const stored = localStorage.getItem("dynamicGroceries"); return stored ? JSON.parse(stored) : null; } catch { return null; }
+  });
   const [loadingPlan, setLoadingPlan] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [width, height] = useWindowSize();
 
   // --- Derived State & Memos ---
-  const activePlan = dynamicPlan ?? defaultPlan ?? {};
-  const activeGroceries = dynamicGroceries ?? defaultGroceries ?? {};
-  const currentDayPlan = activePlan[selectedDay] || {};
+  const activePlan = dynamicPlan ?? defaultPlan ?? {}; // Fallback added just in case
+  const activeGroceries = dynamicGroceries ?? defaultGroceries ?? {}; // Fallback added just in case
+
+  const currentDayPlan = activePlan[selectedDay] || {}; // Default to empty object if day somehow not found
   const meals = currentDayPlan.meals || [];
   const fitness = currentDayPlan.fitness || "";
+
   const checkedItems = checkedItemsByDay[selectedDay] || {};
-  const progress = useMemo(() => { /* ... */ }, [checkedItems, meals]);
+
+  const progress = useMemo(() => {
+    const total = meals.length + 1; // +1 for fitness
+    if (total <= 1 && !fitness) return 0; // Handle case with no meals and no fitness string
+    if (total === 1 && fitness) return checkedItems["fitness"] ? 100 : 0; // Only fitness task
+    const completedMeals = meals.filter((_, i) => checkedItems[`meal-${i}`]).length;
+    const completedFitness = checkedItems["fitness"] ? 1 : 0;
+    return Math.round(((completedMeals + completedFitness) / total) * 100);
+  }, [checkedItems, meals, fitness]); // Added fitness dependency
 
   // --- Effects (no changes) ---
   useEffect(() => { /* ...localStorage sync logic... */ }, [selectedDay, checkedItemsByDay, groceryChecked, dynamicPlan, dynamicGroceries]);
   useEffect(() => { /* ...confetti logic... */ }, [progress, showConfetti]);
 
   // --- Handlers (no changes) ---
-  const handleChangeDay = (direction) => { /* ... */ };
-  const handleCheck = (key) => { /* ... */ };
-  const resetCustomPlan = () => { /* ... */ };
+  const handleChangeDay = (direction) => {
+    const currentIndex = days.indexOf(selectedDay);
+    const newIndex = (currentIndex + direction + days.length) % days.length;
+    setSelectedDay(days[newIndex]);
+   };
+
+  const handleCheck = (key) => {
+     setCheckedItemsByDay(prev => ({
+       ...prev,
+       [selectedDay]: {
+         ...prev[selectedDay],
+         [key]: !prev[selectedDay]?.[key]
+       }
+     }));
+   };
+
+  const resetCustomPlan = () => {
+     setDynamicPlan(null);
+     setDynamicGroceries(null);
+  };
+
   const handleGeneratePlan = async () => { /* ... calls /api/generate-plan ... */ };
 
   // --- Theme ---
-  const theme = createTheme({ /* ... */ });
+  const theme = createTheme({
+     palette: { mode: "light", primary: blueGrey, background: { default: "#f4f7f9", paper: "#ffffff" } },
+     shape: { borderRadius: 12 }
+  });
 
   // --- Render ---
   return (
@@ -92,11 +194,10 @@ function App() {
 
         {/* --- Preferences & Actions --- */}
         <Paper elevation={1} sx={{ p: 2, mb: 3, borderRadius: '16px' }}>
-           {/* ... TextField and Stack with Buttons ... */}
-           <TextField /* ... */ />
-           <Stack /* ... */ >
-             <Button /* Generate */ /* ... */ >{/* ... */}</Button>
-             <Button /* Reset */ /* ... */ >{/* ... */}</Button>
+           <TextField fullWidth label="Your Dietary Preferences & Goals" value={userPrefs} onChange={(e) => setUserPrefs(e.target.value)} sx={{ mb: 2 }} variant="outlined" size="small"/>
+           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} >
+             <Button variant="contained" disabled={loadingPlan} onClick={handleGeneratePlan} startIcon={loadingPlan ? null : <RestartAltIcon />} sx={{ width: { xs: '100%', sm: 'auto' } }}> {loadingPlan ? "Generating..." : "Generate Custom Plan"} </Button>
+             <Button variant="outlined" onClick={resetCustomPlan} sx={{ width: { xs: '100%', sm: 'auto' } }}> Reset to Default </Button>
            </Stack>
         </Paper>
 
@@ -104,10 +205,9 @@ function App() {
         <Box sx={{ position: "relative", mb: 4 }}>
           {/* Day Title and Navigation Buttons */}
           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-             {/* ... IconButtons and Typography ... */}
-             <IconButton /* Prev */ /* ... */ />
-             <Typography /* ... */ > {selectedDay} </Typography>
-             <IconButton /* Next */ /* ... */ />
+             <IconButton onClick={() => handleChangeDay(-1)} aria-label="Previous Day" size="small"> <ArrowBackIosNewIcon fontSize="inherit" /> </IconButton>
+             <Typography variant="h5" textAlign="center" fontWeight="medium"> {selectedDay} </Typography>
+             <IconButton onClick={() => handleChangeDay(1)} aria-label="Next Day" size="small"> <ArrowForwardIosIcon fontSize="inherit" /> </IconButton>
           </Stack>
 
           {/* Animated Content Area */}
@@ -118,20 +218,25 @@ function App() {
                 {/* Fitness Card */}
                 <Card sx={{ mb: 2, boxShadow: 2 }}>
                    <CardContent sx={{ p: 2 }}>
-                     {/* ... Fitness content ... */}
+                     <Typography variant="h6" fontWeight="bold" gutterBottom>🏋️ Fitness</Typography>
+                     <FormControlLabel control={ <Checkbox size="small" checked={checkedItems["fitness"] || false} onChange={() => handleCheck("fitness")} /> } label={fitness || "No fitness activity planned."} sx={{ display: 'flex', alignItems: 'flex-start', ml: 0 }} />
                    </CardContent>
                 </Card>
 
                 {/* Meals Card */}
                 <Card sx={{ mb: 2, boxShadow: 2 }}>
                    <CardContent sx={{ p: 2 }}>
-                     {/* ... Meals content ... */}
+                     <Typography variant="h6" fontWeight="bold" gutterBottom>🍽️ Meals</Typography>
+                     {meals.length > 0 ? meals.map((meal, i) => (
+                       <FormControlLabel key={i} sx={{ display: 'flex', alignItems: 'flex-start', mb: 1, ml: 0 }} control={ <Checkbox size="small" checked={checkedItems[`meal-${i}`] || false} onChange={() => handleCheck(`meal-${i}`)} sx={{ pt: 0.5 }}/> } label={ <Box> <Typography fontWeight="bold" variant="body1">{meal.name}</Typography> <Typography variant="body2" color="text.secondary">{meal.recipe}</Typography> </Box> } />
+                     )) : ( <Typography variant="body2" color="text.secondary">No meals planned.</Typography> )}
                    </CardContent>
                 </Card>
 
                 {/* Progress Bar */}
                 <Box sx={{ mb: 2, px: 2 }}>
-                   {/* ... Progress content ... */}
+                   <Typography variant="body2" sx={{ mb: 1 }}> Daily Progress: {progress}% </Typography>
+                   <LinearProgress variant="determinate" value={progress} sx={{ height: 8, borderRadius: 4 }} />
                 </Box>
               </Box>
             </motion.div>
@@ -145,17 +250,10 @@ function App() {
              {Object.keys(activeGroceries).length > 0 ? Object.entries(activeGroceries).map(([category, items]) => (
                  <Grid item xs={12} sm={6} md={4} key={category}>
                      <Card sx={{ height: '100%', boxShadow: 1 }}>
-                         {/* --- Increased CardContent Padding --- */}
-                         <CardContent sx={{ p: 2.5 }}> {/* Increased padding */}
+                         <CardContent sx={{ p: 2.5 }}> {/* Padding adjusted previously */}
                              <Typography variant="subtitle1" fontWeight="bold" gutterBottom>{category}</Typography>
                              {Array.isArray(items) && items.map((item, i) => (
-                               <FormControlLabel
-                                 key={i}
-                                 // --- Increased Margin Between Items ---
-                                 sx={{ display: 'block', mb: 1 }} // Increased margin-bottom
-                                 control={ <Checkbox size="small" checked={groceryChecked[item] || false} onChange={() => setGroceryChecked(prev => ({ ...prev, [item]: !prev[item] })) } /> }
-                                 label={<Typography variant="body2">{item}</Typography>}
-                               />
+                               <FormControlLabel key={i} sx={{ display: 'block', mb: 1 }} /* Margin adjusted previously */ control={ <Checkbox size="small" checked={groceryChecked[item] || false} onChange={() => setGroceryChecked(prev => ({ ...prev, [item]: !prev[item] })) } /> } label={<Typography variant="body2">{item}</Typography>} />
                              ))}
                          </CardContent>
                      </Card>
@@ -165,10 +263,9 @@ function App() {
              )}
           </Grid>
         </Box>
-        {/* --- End of Grocery List --- */}
 
         {/* --- Confetti --- */}
-        {showConfetti && ( <Confetti width={width} height={height} /* ... */ /> )}
+        {showConfetti && ( <Confetti width={width} height={height} numberOfPieces={300} recycle={false} style={{ position: 'fixed', top: 0, left: 0, zIndex: 9999 }} /> )}
 
       </Container>
     </ThemeProvider>
@@ -176,3 +273,4 @@ function App() {
 }
 
 export default App;
+
