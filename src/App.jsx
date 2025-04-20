@@ -3,7 +3,8 @@ import {
   AppBar, Toolbar, Typography, Tabs, Tab, Box, Card, CardContent, Checkbox,
   FormControlLabel, Grid, Container, CssBaseline, createTheme, ThemeProvider,
   Divider, LinearProgress, Switch, Grow, Button, TextField, Stack, Paper,
-  IconButton
+  IconButton,
+  GlobalStyles // Import GlobalStyles
 } from "@mui/material";
 // Import arrow icons
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
@@ -296,17 +297,17 @@ function App() {
         mode: "light",
         primary: { // Use teal as primary
           main: teal[500], // Main shade
-          light: teal[300],
+          light: teal[300], // Lighter shade for gradient start
           dark: teal[700],
           contrastText: '#ffffff', // Ensure text on primary buttons is readable
         },
         secondary: { // Use amber as secondary/accent
           main: amber[700], // Main shade for accents
-          light: amber[500],
+          light: amber[300], // Lighter shade for gradient end
           dark: amber[900],
           contrastText: 'rgba(0, 0, 0, 0.87)', // Ensure text on secondary buttons is readable
         },
-        background: { default: "#f4f7f9", paper: "#ffffff" } // Keep light background
+        background: { default: "#f4f7f9", paper: "#ffffff" } // Keep light background for paper elements
       },
       shape: { borderRadius: 12 }
   });
@@ -315,12 +316,24 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+      {/* Apply gradient background using GlobalStyles */}
+      <GlobalStyles
+        styles={(theme) => ({ // Access theme here
+          body: {
+            // Using light shades for potentially softer gradient (top to bottom)
+            background: `linear-gradient(180deg, ${theme.palette.primary.light} 0%, ${theme.palette.secondary.light} 100%)`,
+            backgroundAttachment: 'fixed', // Prevent gradient scrolling with content
+            minHeight: '100vh', // Ensure gradient covers full height
+            margin: 0, // Ensure no default body margin interferes
+          },
+        })}
+      />
       {/* Add padding-bottom to the container to prevent overlap with the fixed footer */}
       {/* Adjust the value (e.g., 10) based on the footer's actual height */}
       <Container sx={{ pt: 2, pb: 10 }}> {/* Increased pb */}
 
         {/* --- Preferences & Actions --- */}
-        {/* Buttons will now use the primary (teal) color */}
+        {/* Paper provides contrast against the gradient background */}
         <Paper elevation={1} sx={{ p: 2, mb: 3, borderRadius: '16px' }}>
             <TextField fullWidth label="Your Dietary Preferences & Goals" value={userPrefs} onChange={(e) => setUserPrefs(e.target.value)} sx={{ mb: 2 }} variant="outlined" size="small"/>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} >
@@ -332,19 +345,20 @@ function App() {
         {/* --- Day View Container --- */}
         <Box sx={{ position: "relative", mb: 4 }}>
           {/* Day Title and Navigation Buttons */}
+          {/* Style these for better contrast if needed, but default text color should be ok */}
           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-              <IconButton onClick={() => handleChangeDay(-1)} aria-label="Previous Day" size="small"> <ArrowBackIosNewIcon fontSize="inherit" /> </IconButton>
-              <Typography variant="h5" textAlign="center" fontWeight="medium"> {selectedDay} </Typography>
-              <IconButton onClick={() => handleChangeDay(1)} aria-label="Next Day" size="small"> <ArrowForwardIosIcon fontSize="inherit" /> </IconButton>
+              <IconButton onClick={() => handleChangeDay(-1)} aria-label="Previous Day" size="small" sx={{ color: 'text.primary' }}> <ArrowBackIosNewIcon fontSize="inherit" /> </IconButton>
+              <Typography variant="h5" textAlign="center" fontWeight="medium" sx={{ color: 'text.primary' }}> {selectedDay} </Typography>
+              <IconButton onClick={() => handleChangeDay(1)} aria-label="Next Day" size="small" sx={{ color: 'text.primary' }}> <ArrowForwardIosIcon fontSize="inherit" /> </IconButton>
           </Stack>
 
           {/* Animated Content Area */}
           <AnimatePresence initial={false} mode='wait'>
             <motion.div key={selectedDay} variants={variants} initial="enter" animate="center" exit="exit" transition={transition} >
               {/* Content Box */}
+              {/* Cards provide contrast against the gradient background */}
               <Box sx={{ pb: 2 }}>
                 {/* Fitness Card */}
-                {/* Checkboxes will use the primary (teal) color */}
                 <Card sx={{ mb: 2, boxShadow: 2 }}>
                     <CardContent sx={{ p: 2 }}>
                       <Typography variant="h6" fontWeight="bold" gutterBottom>🏋️ Fitness</Typography>
@@ -372,9 +386,9 @@ function App() {
         </Box>
 
         {/* --- Grocery List --- */}
-        {/* Checkboxes will use the primary (teal) color */}
+        {/* Cards provide contrast against the gradient background */}
         <Box mt={4}>
-          <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>🛒 Grocery List</Typography>
+          <Typography variant="h6" gutterBottom sx={{ mb: 2, color: 'text.primary' }}>🛒 Grocery List</Typography>
           <Grid container spacing={2}>
               {Object.keys(activeGroceries).length > 0 ? Object.entries(activeGroceries).map(([category, items]) => (
                   <Grid item xs={12} sm={6} md={4} key={category}>
@@ -388,7 +402,7 @@ function App() {
                       </Card>
                   </Grid>
               )) : (
-                  <Grid item xs={12}><Typography>No grocery list available.</Typography></Grid>
+                  <Grid item xs={12}><Typography sx={{ color: 'text.secondary' }}>No grocery list available.</Typography></Grid>
               )}
           </Grid>
         </Box>
@@ -407,7 +421,7 @@ function App() {
       </Container> {/* End Main Content Container */}
 
       {/* --- Static Footer Progress Bar --- */}
-      {/* Progress bar will use primary (teal) and secondary (amber) for completion */}
+      {/* Footer uses background.paper for contrast */}
       <AppBar position="fixed" sx={{ top: 'auto', bottom: 0, bgcolor: 'background.paper', borderTop: 1, borderColor: 'divider' }}>
         <Toolbar>
           <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: 2, px: { xs: 0, sm: 1 } }}> {/* Add some padding on larger screens */}
